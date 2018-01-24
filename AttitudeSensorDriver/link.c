@@ -5,34 +5,13 @@
 //模块MotorMotionControl对框架EmbeddBreakerCore的链接
 //该文件写入对框架的函数调用支持
 
-Sigmod_Acce_Dval_Switch 	SAD_Switch;
-Init_ARM_Reset_Switch 		Init_Reset_Switch;
-ARM_Sensor_EXTI_Setting		ASES_Switch;
+#define GRIntervalValue		5000u
+
 Stew_EXTI_Setting			StewEXTI_Switch;
 
 //链接到Universal_Resource_Config函数的模块库
-void ModuleMMC_UniResConfig (void)
+void ModuleAA_UniResConfig (void)
 {
-	/*
-		电机柔性启停有多种积极意义
-		本工程主要是为了在步进电机相对高速运转时带动更重负载
-	*/
-    SAD_Switch 			= SAD_Disable;					//SAD_Enable		SAD_Disable
-	
-	/*
-		机器上电完全复位的重要部分
-		实际运用建议开启，建立绝对坐标系
-		调试时建议关闭，以免损伤机械臂部件
-	*/
-    Init_Reset_Switch 	= Reset_Disable;				//Reset_Enable		Reset_Disable
-	
-	/*
-		由于机械臂传感器触发判断多种多样
-		可能不适合放到外部中断
-		但如果普通检测可能响应不够快
-	*/
-	ASES_Switch			= ASES_Enable;					//ASES_Enable		ASES_Disable
-	
 	/*
 		急停状态判断复杂，不适合外部中断
 		但也有可能普通监测不够快
@@ -41,67 +20,19 @@ void ModuleMMC_UniResConfig (void)
 }
 
 //模块选项映射表，链接到urcMapTable_Print函数
-void ModuleMMC_URCMap (void)
+void ModuleAA_URCMap (void)
 {
-	printf("\r\n%02d	S-Accel/Dvalue Speed", urc_sad);
-	usart1WaitForDataTransfer();
-	printf("\r\n%02d	Arm Position Reset", urc_areset);
-	usart1WaitForDataTransfer();
-	printf("\r\n%02d 	Arm Sensor EXTI Setting", urc_ases);
-	usart1WaitForDataTransfer();
 	printf("\r\n%02d 	Stew EXTI Setting", urc_stew);
 	usart1WaitForDataTransfer();
 }
 
 //选项处理，链接到pclURC_DebugHandler函数
-void ModuleMMC_urcDebugHandler (u8 ed_status, Module_SwitchNbr sw_type)
+void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type)
 {
 	switch (sw_type)
 	{
-	case urc_sad: 		SAD_Switch 		= (Sigmod_Acce_Dval_Switch)ed_status; 		break;
-	case urc_areset: 	ASES_Switch 	= (ARM_Sensor_EXTI_Setting)ed_status; 		break;
-	case urc_ases: 		ASES_Switch		= (ARM_Sensor_EXTI_Setting)ed_status;		break;	
 	case urc_stew: 		StewEXTI_Switch	= (Stew_EXTI_Setting)ed_status;				break;	
 	}
-}
-
-//OLED常量第四屏，链接到OLED_DisplayInitConst和UIScreen_DisplayHandler函数
-void OLED_ScreenP4_Const (void)
-{	
-	OLED_ShowString(strPos(1u), ROW1, (const u8*)" MotorMotion  ", Font_Size);	
-	OLED_ShowString(strPos(1u), ROW2, (const u8*)"ControlModule ", Font_Size);	
-	OLED_Refresh_Gram();
-}
-
-//OLED MotorMotionControlModule数据显示
-void OLED_DisplayMMC (MotorMotionSetting *mcstr)
-{	
-	//显示电机运行状态
-	OLED_ShowString(strPos(0u), ROW1, (const u8*)"MS:", Font_Size);
-	if (mcstr -> MotorStatusFlag == Run)
-		OLED_ShowString(strPos(3u), ROW1, (const u8*)"Work", Font_Size);
-	else
-		OLED_ShowString(strPos(3u), ROW1, (const u8*)"Stew", Font_Size);
-
-	//显示电机转向
-	OLED_ShowString(strPos(8u), ROW1, (const u8*)"DN:", Font_Size);
-	if (mcstr -> RevDirectionFlag == Pos_Rev)
-		OLED_ShowString(strPos(11u), ROW1, (const u8*)"Pos", Font_Size);
-	else
-		OLED_ShowString(strPos(11u), ROW1, (const u8*)"Neg", Font_Size);
-	
-	//显示电机行距
-	if (mcstr -> DistanceUnitLS == LineUnit)
-		OLED_ShowString(strPos(0u), ROW2, (const u8*)"RM:", Font_Size);
-	else
-		OLED_ShowString(strPos(0u), ROW2, (const u8*)"RA:", Font_Size);
-	OLED_ShowNum(strPos(3u), ROW2, mcstr -> RotationDistance, 4u, Font_Size);	
-
-	//显示电机转速
-	OLED_ShowString(strPos(8u), ROW2, (const u8*)"SF:", Font_Size);
-	OLED_ShowNum(strPos(11u), ROW2, mcstr -> SpeedFrequency, 4u, Font_Size);	
-	
-	OLED_Refresh_Gram();
 }
 
 //串口接收数据示例，不调用
@@ -127,14 +58,58 @@ void U1RSD_example (void)
     }
 }
 
+//OLED常量第四屏，链接到OLED_DisplayInitConst和UIScreen_DisplayHandler函数
+void OLED_ScreenP4_Const (void)
+{	
+	OLED_ShowString(strPos(1u), ROW1, (const u8*)"   Attitude   ", Font_Size);	
+	OLED_ShowString(strPos(1u), ROW2, (const u8*)"  Algorithm   ", Font_Size);	
+	OLED_Refresh_Gram();
+}
+
+//OLED AttitudeAlgorithm数据显示
+void OLED_DisplayAA (void)
+{	
+	//显示Roll角度
+	OLED_ShowString(strPos(0u), ROW1, (const u8*)"R:", Font_Size);
+	OLED_ShowNum(strPos(2u), ROW1, Roll + 360, 3u, Font_Size);	
+	OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
+	OLED_ShowNum(strPos(6u), ROW1, ((u16)((Roll + 360) * 10) % 10), 1u, Font_Size);
+	
+	//显示Pitch角度
+	OLED_ShowString(strPos(8u), ROW1, (const u8*)"P:", Font_Size);
+	OLED_ShowNum(strPos(10u), ROW1, Pitch + 360, 3u, Font_Size);	
+	OLED_ShowString(strPos(13u), ROW1, (const u8*)".", Font_Size);
+	OLED_ShowNum(strPos(14u), ROW1, ((u16)((Pitch + 360) * 10) % 10), 1u, Font_Size);
+	
+	//显示Yaw角度
+	OLED_ShowString(strPos(0u), ROW2, (const u8*)"Y:", Font_Size);
+	OLED_ShowNum(strPos(2u), ROW2, Yaw + 360, 3u, Font_Size);	
+	OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
+	OLED_ShowNum(strPos(6u), ROW2, ((u16)((Yaw + 360) * 10) % 10), 1u, Font_Size);
+	
+	OLED_Refresh_Gram();
+}
+
+/*
+	DMP的读取在数据采集中断读取，严格遵循5ms时序要求
+	获取角度的算法 1：DMP  2：卡尔曼 3：互补滤波
+*/
+void MPUDMP_SequentialRead (void)
+{
+	static u16 gyroReadSem = 0u;
+
+	if (gyroReadSem == TickDivsIntervalus(GRIntervalValue) - 1)
+	{
+		gyroReadSem = 0u;
+		MPUReadInnerDMPData();    												
+	}
+	gyroReadSem++;												//信号量开始计数	
+}
+
+/*
 //串口控制运动算例，对协议算例接口
 Motion_Select SingleStepDebug_linker (void)
 {
-	/*
-		16进制转10进制，线度单位毫米，角度单位度
-		由于是16进制坐标所以不需要添加0x30转换值
-	*/
-	
 	//两字节算列类型
 	Motion_Select SSD_MotionNumber	= (Motion_Select)(
 											USART1_RX_BUF[SSD_MoNum_1st] 		* 10u 
@@ -202,6 +177,7 @@ Motion_Select SingleStepDebug_linker (void)
 	
 	return SSD_MotionNumber;							//返回算例号用于其它功能
 }
+*/
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

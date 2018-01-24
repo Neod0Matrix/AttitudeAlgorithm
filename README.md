@@ -8,7 +8,7 @@ Copyright
 Update
 ===============
 
-	最后更新时间: 2018/01/20pm2156
+	最后更新时间: 2018/01/24am1003
 
 Project Manual
 ==============
@@ -28,7 +28,7 @@ Project Manual
 	Laboratory: 	T.WKVER
 	OS_Version: 	μC/OS-III v3.03
 	FWLib_Verson: 	v3.5
-	Project_Verson: OS_v0p0_LTE 长期演进版(什么时候TMD才能跑出个stable来啊)_(:з」∠)_ _(┐「ε:)_
+	Project_Verson: OS_v0p1_LTE 长期演进版(什么时候TMD才能跑出个stable来啊)_(:з」∠)_ _(┐「ε:)_
 	
 Use Manual
 ===============
@@ -64,18 +64,18 @@ Inner IO Map
 	PB0/PA2  					*
 	PB1/PA3  					*
 	PB2 ----
-	PB3 ---- 			I
-	PB4 ---- 			I
+	PB3 ---- 			
+	PB4 ---- 			
 	PB5 ----
 	PB6 ----
 	PB7 ----
 	PB8 ---- STEWIO		I
 	PB9 ----
-	PB10 --- 
-	PB11 --- 	
-	PB12 --- 			I
+	PB10 --- GYRO_SCL
+	PB11 --- GYRO_SDA	I	
+	PB12 --- 			
 	PB13 --- OLED_SCL
-	PB14 --- 			I
+	PB14 --- 			
 	PB15 --- OLED_SDA	I
 	
 	PC0 ---- 			I

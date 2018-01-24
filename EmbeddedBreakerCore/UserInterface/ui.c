@@ -110,7 +110,7 @@ void OLED_DisplayInitConst (void)
 		/*
 			@EmbeddedBreakerCore Extern API Insert
 		*/
-		OLED_DisplayMMC(&st_motorAcfg);
+		OLED_DisplayAA();
 		delay_ms(300);						//logo延迟
 		OLED_Clear();						//擦除原先的画面
 	}		
@@ -308,7 +308,7 @@ void UIScreen_DisplayHandler (void)
 			@EmbeddedBreakerCore Extern API Insert
 		*/
 		case 4:
-			OLED_DisplayMMC(&st_motorAcfg);
+			OLED_DisplayAA();
 		}
 	}
 }

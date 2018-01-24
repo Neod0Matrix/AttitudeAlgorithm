@@ -133,7 +133,7 @@ void Universal_Resource_Config (void)
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
-	ModuleMMC_UniResConfig();
+	ModuleAA_UniResConfig();
 	
 #endif													//end of Frame_PreConfig flag
 }
@@ -180,7 +180,7 @@ void urcMapTable_Print (void)
 		/*
 			@EmbeddedBreakerCore Extern API Insert
 		*/
-		ModuleMMC_URCMap();
+		ModuleAA_URCMap();
 
 		printf("\r\n");
 		usart1WaitForDataTransfer();
@@ -228,7 +228,7 @@ void pclURC_DebugHandler (void)
 		/*
 			@EmbeddedBreakerCore Extern API Insert
 		*/
-		ModuleMMC_urcDebugHandler(ed_status, (Module_SwitchNbr)sw_type);
+		ModuleAA_urcDebugHandler(ed_status, (AHRS_SwitchNbr)sw_type);
 		
 		__ShellHeadSymbol__; U1SD("URC Setting Update\r\n");//URC配置更新
 	}

@@ -38,7 +38,6 @@ static int Protocol_Stack[][Protocol_Stack_Size] =
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
-	/*8*/	ModuleMMC_Protocol,
 };
 
 //通信起始标志
@@ -276,11 +275,12 @@ void OrderResponse_Handler (void)
 		case pORF:
 			break;
 		
-		//--------------------对外API接口
-	
+		/*
+			@EmbeddedBreakerCore Extern API Insert
+		*/
 		case pSSDS:
 			U1SD("MotorMotionControlModule API Single Step Debug Call\r\n");
-			SingleStepDebug_linker();
+			
 			break;
         }
 		

@@ -6,9 +6,7 @@
 //====================================================================================================
 //外部中断驱动代码
 
-//总线设置
-#define ARM2Dn_EXTI_Line  	EXTI_Line3								//滑轨下方传感器					
-#define ARM2Up_EXTI_Line	EXTI_Line4								//滑轨上方传感器						
+//总线设置					
 #define Stew_EXTI_Line 		EXTI_Line8								//急停	
 
 //EXTI模式配置

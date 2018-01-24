@@ -8,7 +8,13 @@
 //该文件需要添加到stdafx.h内生效
 
 //链接所有AttitudeAlgorithm模块的头文件
-
+#include "inv_i2c.h"
+#include "mpu6050.h"
+#include "inv_mpu_dmp_motion_driver.h"
+#include "dmpkey.h"
+#include "dmpmap.h"
+#include "inv_mpu.h"
+#include "filter.h"
 
 //MCU资源
 #define _MCU_Model_				"STM32F103RET6"			//主控芯片型号
@@ -19,7 +25,7 @@
 //工程声明
 #define _Project_Type_			"SDP"					//工程类型
 #define _Frame_Name_			"EmbeddedBreakerCore"	//架构名称
-#define _Code_Version_ 			"OS_v0p0_LTE"			//长期演进版
+#define _Code_Version_ 			"OS_v0p1_LTE"			//长期演进版
 #define _Laboratory_			"T.WKVER"				//实验室
 #define _Logo_					"Absolute Liberal"		//logo
 #define _Developer_				"Neod Anderjon"			//开发者
@@ -31,15 +37,6 @@
 //嵌入式系统版本
 #define _OS_Version_			"uC/OS-III v3p03"		//ucosiii	
 
-//是否启用步进电机S形加减速
-typedef enum {SAD_Enable = 1, SAD_Disable = !SAD_Enable} 				Sigmod_Acce_Dval_Switch;
-extern Sigmod_Acce_Dval_Switch 		SAD_Switch;
-//是否启用开机机械臂复位
-typedef enum {Reset_Enable = 1, Reset_Disable = !Reset_Enable} 			Init_ARM_Reset_Switch;
-extern Init_ARM_Reset_Switch 		Init_Reset_Switch;
-//是否将机械臂传感器设置为外部中断
-typedef enum {ASES_Enable = 1, ASES_Disable = !ASES_Enable}				ARM_Sensor_EXTI_Setting;
-extern ARM_Sensor_EXTI_Setting		ASES_Switch;
 //是否开启急停外部中断
 typedef enum {StewEXTI_Enable = 1, StewEXTI_Disable = !StewEXTI_Enable}	Stew_EXTI_Setting;
 extern Stew_EXTI_Setting			StewEXTI_Switch;
@@ -47,14 +44,11 @@ extern Stew_EXTI_Setting			StewEXTI_Switch;
 //urc开源链接编号
 typedef enum 
 {
-	urc_sad 	= 15,
-	urc_areset 	= 16,
-	urc_ases 	= 17,
-	urc_stew 	= 18,
-} Module_SwitchNbr;
+	urc_stew 	= 15,
+} AHRS_SwitchNbr;
 
 //裁去protocol.h中的定义放到这里来重新定义urc协议长度
-#define Max_Option_Value	18u
+#define Max_Option_Value		15u
 
 //协议protocol.c链接
 /*
@@ -72,26 +66,21 @@ typedef enum
 #define SSD_SpFq_1st			9u						//单步调试速度第一位，共4位
 #define SSD_Mode_1st			13u						//单步调试运行模式第一位，共1位
 
-//对13个运动算例进行串口查询编号
-typedef enum
-{
-    Stew_All 	= 0,									//急停
-    UpMove		= 1,									//机械臂上行
-    DownMove	= 2,									//机械臂下行
-	Repeat		= 3,									//反复测试
-} Motion_Select;										//算例选择	
-
-extern void U1RSD_example (void);						//串口处理例程封装
-extern Motion_Select SingleStepDebug_linker (void);		//上层封装单步调试调用链接库
 //对外API接口
-void ModuleMMC_UniResConfig (void);
-void ModuleMMC_URCMap (void);
-void ModuleMMC_urcDebugHandler (u8 ed_status, Module_SwitchNbr sw_type);
+extern void U1RSD_example (void);						//串口处理例程封装
+void ModuleAA_UniResConfig (void);
+void ModuleAA_URCMap (void);
+void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type);
 
 #define ScreenPageCount			5u						//OLED UI切换总页数
 
 void OLED_ScreenP4_Const (void);
-void OLED_DisplayMMC (MotorMotionSetting *mcstr);
+void OLED_DisplayAA (void);
+
+void MPUDMP_SequentialRead (void);
+
+void oled_show(void);
+void APP_Show(void);
 
 #endif
 

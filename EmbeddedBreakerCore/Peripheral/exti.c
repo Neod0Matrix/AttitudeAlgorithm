@@ -63,36 +63,6 @@ void EXTI_Config_Init (void)
 							0x01, 
 							0x01);
 	}
-						
-	/*
-		@EmbeddedBreakerCore Extern API Insert
-	*/
-	if (ASES_Switch == ASES_Enable)
-	{
-		//先初始化IO口
-		Sensor_IO_Init();
-		//PB4 A2U
-		ucEXTI_ModeConfig(
-							GPIO_PortSourceGPIOB, 
-							GPIO_PinSource4, 
-							ARM2Up_EXTI_Line, 
-							EXTI_Mode_Interrupt, 
-							EXTI_Trigger_Falling, 
-							EXTI4_IRQn, 
-							0x02, 
-							0x03);
-							
-		//PB3 A2D
-		ucEXTI_ModeConfig(
-							GPIO_PortSourceGPIOB, 
-							GPIO_PinSource3, 
-							ARM2Dn_EXTI_Line, 
-							EXTI_Mode_Interrupt, 
-							EXTI_Trigger_Falling, 
-							EXTI3_IRQn, 
-							0x02, 
-							0x02);
-	}
 }
 
 //STEW--PB8
@@ -107,11 +77,6 @@ void EXTI9_5_IRQHandler (void)
 	*/
 	if (StewEXTI_Switch == StewEXTI_Enable && STEW_LTrigger)  		//长按检测急停
 	{
-		/*
-			@EmbeddedBreakerCore Extern API Insert
-		*/
-		MotorBasicDriver(&st_motorAcfg, StopRun); 
-		
 		EMERGENCYSTOP;												
 		EMERGENCYSTOP_16;
 		
@@ -119,41 +84,6 @@ void EXTI9_5_IRQHandler (void)
 		ERROR_CLEAR;												//急停复位后自动清除警报	
 	}
 	EXTI_ClearITPendingBit(Stew_EXTI_Line);  						//清除EXTI线路挂起位
-	
-#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
-	OSIntExit();  											 
-#endif
-}
-
-/*
-	@EmbeddedBreakerCore Extern API Insert
-*/
-//A2U--PB4
-void EXTI4_IRQHandler (void)										//机械臂传感器检测
-{
-#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
-	OSIntEnter();    
-#endif
-	
-	if (ASES_Switch	== ASES_Enable && USrLTri)  		
-		MotorBasicDriver(&st_motorAcfg, StopRun);
-	EXTI_ClearITPendingBit(ARM2Up_EXTI_Line);						//清除EXTI线路挂起位
-	
-#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
-	OSIntExit();  											 
-#endif
-}
-
-//A2D--PB3
-void EXTI3_IRQHandler (void)										//机械臂传感器检测
-{
-#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
-	OSIntEnter();    
-#endif
-	
-	if (ASES_Switch	== ASES_Enable && DSrLTri)  				
-		MotorBasicDriver(&st_motorAcfg, StopRun);
-	EXTI_ClearITPendingBit(ARM2Dn_EXTI_Line);						//清除EXTI线路挂起位
 	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 

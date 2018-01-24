@@ -41,6 +41,11 @@ void TIM2_IRQHandler (void)
 		BlinkLED_StatusCtrl();								//闪烁LED动作处理
 		OLED_PageAlterCtrl();								//OLED切屏控制
 		BreathLEDGroupCall();								//呼吸灯动作处理
+		
+		/*
+			@EmbeddedBreakerCore Extern API Insert
+		*/
+		MPUDMP_SequentialRead();							//更新陀螺仪数据
 	}
 	
 #if SYSTEM_SUPPORT_OS										//OS支持

@@ -1,7 +1,7 @@
 v0p0_LTE:
 	创建工程
 v0p1_LTE:
-	
+	添加IMU解算库和MPU底层驱动库
 v0p2_LTE:
 	
 v0p3_LTE:
