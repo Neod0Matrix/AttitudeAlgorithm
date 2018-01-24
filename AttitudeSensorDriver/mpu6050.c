@@ -5,8 +5,6 @@
 //MPU6050基础驱动
 
 float Roll, Pitch, Yaw;
-short gyro[3], accel[3], sensors;
-float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
 
 //MPU6050数据读取寄存更新
 void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz)
@@ -150,7 +148,6 @@ void MPU6050_DeviceInit (void)
     MPU6050_SetSleepEnabled(0); 							//进入工作状态
 	MPU6050_SetI2CMasterModeEnabled(0);	 					//不让MPU6050控制AUXI2C
 	MPU6050_SetI2CBypassEnabled(0);	 						//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
-	
 	MPUInnerDMP_Init();										//内置DMP初始化
 }
 
@@ -168,66 +165,32 @@ float MPU6050_ReadTemperature (void)
 	return Temp;
 }
 
-//MPU6050内置DMP初始化
-void MPUInnerDMP_Init (void)
-{ 
-	u8 temp[1] = {0};
-	//解算矩阵
-	static signed char gyro_orientation[9] = {-1, 0, 0,
-											0,-1, 0,
-											0, 0, 1};
-
-	i2cRead(0x68, 0x75, 1, temp);
-
-	__ShellHeadSymbol__;
-	U1SD("Mpu_set_sensor Complete......\r\n");
-	if (temp[0] != 0x68)
-		NVIC_SystemReset();
-	if (!mpu_init())
+//MPU自检测试
+static void MPU_SelfTest (void)
+{
+    int result;
+    long gyro[3], accel[3];
+	float sens;
+	u16 accel_sens;
+	
+    result = mpu_run_self_test(gyro, accel);
+    if (result == 0x7) 
 	{
-		if (!mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL))
-			U1SD("Mpu_set_sensor Complete......\r\n");
-		if (!mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL))
-			U1SD("Mpu_configure_fifo Complete......\r\n");
-		if (!mpu_set_sample_rate(DEFAULT_MPU_HZ))
-			U1SD("Mpu_set_sample_rate Complete......\r\n");
-		if (!dmp_load_motion_driver_firmware())
-			U1SD("DMP_load_motion_driver_firmware Complete......\r\n");
-		if (!dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation)))
-			U1SD("DMP_set_orientation Complete......\r\n");
-		if (!dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
-	        DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | 
-			DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL))
-			U1SD("DMP_enable_feature Complete......\r\n");
-		if(!dmp_set_fifo_rate(DEFAULT_MPU_HZ))
-			U1SD("DMP_set_fifo_rate Complete......\r\n");
-		MPU_SelfTest();
-		if(!mpu_set_dmp_state(1))
-			U1SD("Mpu_set_dmp_state Complete ......\r\n");
-	}
+        mpu_get_gyro_sens(&sens);
+        gyro[0] = (long)(gyro[0] * sens);
+        gyro[1] = (long)(gyro[1] * sens);
+        gyro[2] = (long)(gyro[2] * sens);
+        dmp_set_gyro_bias(gyro);
+        mpu_get_accel_sens(&accel_sens);
+        accel[0] *= accel_sens;
+        accel[1] *= accel_sens;
+        accel[2] *= accel_sens;
+        dmp_set_accel_bias(accel);
+		U1SD("Setting bias succesfully......\r\n");
+    }
 }
 
-//读取MPU6050内置DMP的姿态信息
-void MPUReadInnerDMPData (void)
-{	
-	unsigned long sensor_timestamp;
-	u8 more;
-	long quat[4];
-
-	dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);		
-	if (sensors & INV_WXYZ_QUAT )
-	{    
-		q0 = quat[0] / q30;
-		q1 = quat[1] / q30;
-		q2 = quat[2] / q30;
-		q3 = quat[3] / q30;
-		
-		Roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1) * 57.3; 
-		Pitch = asin(-2 * q1 * q3 + 2 * q0* q2) * 57.3; 	 
-		Yaw = 	atan2(2*(q1*q2 + q0*q3),q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;
-	}
-}
-
+//方向矩阵辅助转换函数
 static u16 inv_row_2_scale (const signed char *row)
 {
     u16 b;
@@ -262,29 +225,68 @@ static u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
     return scalar;
 }
 
-//MPU自检测试
-static void MPU_SelfTest (void)
-{
-    int result;
-    long gyro[3], accel[3];
-	float sens;
-	u16 accel_sens;
-	
-    result = mpu_run_self_test(gyro, accel);
-    if (result == 0x7) 
+//MPU6050内置DMP初始化
+void MPUInnerDMP_Init (void)
+{ 
+	u8 temp[1] = {0};
+	//解算矩阵
+	static signed char gyro_orientation[9] = {-1, 0, 0,
+											0,-1, 0,
+											0, 0, 1};
+
+	i2cRead(MPU6050_DEFAULT_ADDRESS, MPU6050_RA_WHO_AM_I, 1, temp);
+
+	__ShellHeadSymbol__;
+	U1SD("Mpu_set_sensor Complete......\r\n");
+	if (temp[0] != MPU6050_DEFAULT_ADDRESS)
+		U1SD("Mpu Device Register Error, Frame Suggest Reboot\r\n");	//检查设备不成功，建议重启
+	if (!mpu_init())
 	{
-        mpu_get_gyro_sens(&sens);
-        gyro[0] = (long)(gyro[0] * sens);
-        gyro[1] = (long)(gyro[1] * sens);
-        gyro[2] = (long)(gyro[2] * sens);
-        dmp_set_gyro_bias(gyro);
-        mpu_get_accel_sens(&accel_sens);
-        accel[0] *= accel_sens;
-        accel[1] *= accel_sens;
-        accel[2] *= accel_sens;
-        dmp_set_accel_bias(accel);
-		U1SD("Setting bias succesfully......\r\n");
-    }
+		if (!mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL))
+			U1SD("Mpu_set_sensor Complete......\r\n");
+		if (!mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL))
+			U1SD("Mpu_configure_fifo Complete......\r\n");
+		if (!mpu_set_sample_rate(DEFAULT_MPU_HZ))
+			U1SD("Mpu_set_sample_rate Complete......\r\n");
+		if (!dmp_load_motion_driver_firmware())
+			U1SD("DMP_load_motion_driver_firmware Complete......\r\n");
+		if (!dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation)))
+			U1SD("DMP_set_orientation Complete......\r\n");
+		if (!dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
+	        DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | 
+			DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL))
+			U1SD("DMP_enable_feature Complete......\r\n");
+		if (!dmp_set_fifo_rate(DEFAULT_MPU_HZ))
+			U1SD("DMP_set_fifo_rate Complete......\r\n");
+		MPU_SelfTest();
+		if (!mpu_set_dmp_state(1))
+			U1SD("Mpu_set_dmp_state Complete ......\r\n");
+	}
+}
+
+//读取MPU6050内置DMP的姿态信息
+void MPUReadInnerDMPData (void)
+{	
+	unsigned long sensor_timestamp;
+	u8 more;
+	long quat[4];
+	static short gyro[3], accel[3], sensors;
+	static float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
+
+	//读取一次，写入FIFO数组
+	dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);		
+	if (sensors & INV_WXYZ_QUAT)
+	{    
+		q0 = quat[0] / q30;
+		q1 = quat[1] / q30;
+		q2 = quat[2] / q30;
+		q3 = quat[3] / q30;
+		
+		//矩阵解算
+		Roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3; 
+		Pitch = asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3; 	 
+		Yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3;
+	}
 }
 
 //====================================================================================================

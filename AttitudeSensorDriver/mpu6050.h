@@ -6,7 +6,7 @@
 //====================================================================================================
 //MPU6050基础驱动
 
-#define devAddr  0xD0
+#define devAddr  					0xD0
 
 #define MPU6050_ADDRESS_AD0_LOW     0x68 // address pin low (GND), default for InvenSense evaluation board
 #define MPU6050_ADDRESS_AD0_HIGH    0x69 // address pin high (VCC)
@@ -133,8 +133,8 @@
 
 #define MPU6050_CFG_EXT_SYNC_SET_BIT    5
 #define MPU6050_CFG_EXT_SYNC_SET_LENGTH 3
-#define MPU6050_CFG_DLPF_CFG_BIT    2
-#define MPU6050_CFG_DLPF_CFG_LENGTH 3
+#define MPU6050_CFG_DLPF_CFG_BIT    	2
+#define MPU6050_CFG_DLPF_CFG_LENGTH 	3
 
 #define MPU6050_EXT_SYNC_DISABLED       0x0
 #define MPU6050_EXT_SYNC_TEMP_OUT_L     0x1
@@ -345,35 +345,23 @@
 #define MPU6050_PWR2_STBY_YG_BIT            1
 #define MPU6050_PWR2_STBY_ZG_BIT            0
 
-#define MPU6050_WAKE_FREQ_1P25      0x0
-#define MPU6050_WAKE_FREQ_2P5       0x1
-#define MPU6050_WAKE_FREQ_5         0x2
-#define MPU6050_WAKE_FREQ_10        0x3
+#define MPU6050_WAKE_FREQ_1P25      		0x0
+#define MPU6050_WAKE_FREQ_2P5       		0x1
+#define MPU6050_WAKE_FREQ_5         		0x2
+#define MPU6050_WAKE_FREQ_10        		0x3
 
 #define MPU6050_BANKSEL_PRFTCH_EN_BIT       6
 #define MPU6050_BANKSEL_CFG_USER_BANK_BIT   5
 #define MPU6050_BANKSEL_MEM_SEL_BIT         4
 #define MPU6050_BANKSEL_MEM_SEL_LENGTH      5
 
-#define MPU6050_WHO_AM_I_BIT        6
-#define MPU6050_WHO_AM_I_LENGTH     6
+#define MPU6050_WHO_AM_I_BIT        		6
+#define MPU6050_WHO_AM_I_LENGTH     		6
 
-#define PRINT_ACCEL     (0x01)
-#define PRINT_GYRO      (0x02)
-#define PRINT_QUAT      (0x04)
-#define ACCEL_ON        (0x01)
-#define GYRO_ON         (0x02)
-#define MOTION          (0)
-#define NO_MOTION       (1)
-#define DEFAULT_MPU_HZ  (200)
-#define FLASH_SIZE      (512)
-#define FLASH_MEM_START ((void*)0x1800)
-#define q30  			pow(2, 30)
+#define DEFAULT_MPU_HZ  					200
+#define q30  								pow(2, 30)
 
 extern float Roll, Pitch, Yaw;
-
-extern	short gyro[3], accel[3];
-extern float Acc1G_Values;
 
 //MPU6050状态操作函数
 void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz);

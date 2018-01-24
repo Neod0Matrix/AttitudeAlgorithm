@@ -1356,7 +1356,5 @@ int dmp_register_android_orient_cb(void (*func)(unsigned char))
     return 0;
 }
 
-/**
- *  @}
- */
-
+//====================================================================================================
+//code by </MATRIX>@Neod Anderjon
