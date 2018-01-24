@@ -44,7 +44,7 @@
 #define MPU6050_RA_I2C_MST_CTRL     0x24
 #define MPU6050_RA_I2C_SLV0_ADDR    0x25
 #define MPU6050_RA_I2C_SLV0_REG     0x26
-# define MPU6050_RA_I2C_SLV0_CTRL    0x27
+# define MPU6050_RA_I2C_SLV0_CTRL   0x27
 #define MPU6050_RA_I2C_SLV1_ADDR    0x28
 #define MPU6050_RA_I2C_SLV1_REG     0x29
 #define MPU6050_RA_I2C_SLV1_CTRL    0x2A
@@ -109,7 +109,7 @@
 #define MPU6050_RA_I2C_SLV3_DO      0x66
 #define MPU6050_RA_I2C_MST_DELAY_CTRL   0x67
 #define MPU6050_RA_SIGNAL_PATH_RESET    0x68
-#define MPU6050_RA_MOT_DETECT_CTRL      0x69
+#define MPU6050_RA_MOT_DETECT_CTRL  0x69
 #define MPU6050_RA_USER_CTRL        0x6A
 #define MPU6050_RA_PWR_MGMT_1       0x6B
 #define MPU6050_RA_PWR_MGMT_2       0x6C
@@ -272,8 +272,8 @@
 #define MPU6050_INTERRUPT_DMP_INT_BIT       1
 #define MPU6050_INTERRUPT_DATA_RDY_BIT      0
 
-// TODO: figure out what these actually do
-// UMPL source code is not very obivous
+//TODO: figure out what these actually do
+//UMPL source code is not very obivous
 #define MPU6050_DMPINT_5_BIT            5
 #define MPU6050_DMPINT_4_BIT            4
 #define MPU6050_DMPINT_3_BIT            3

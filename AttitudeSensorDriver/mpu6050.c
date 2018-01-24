@@ -38,16 +38,16 @@ void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int1
 
 /*
 	设置MPU6050的时钟源
-	 * CLK_SEL | Clock Source
-	 * --------+--------------------------------------
-	 * 0       | Internal oscillator
-	 * 1       | PLL with X Gyro reference
-	 * 2       | PLL with Y Gyro reference
-	 * 3       | PLL with Z Gyro reference
-	 * 4       | PLL with external 32.768kHz reference
-	 * 5       | PLL with external 19.2MHz reference
-	 * 6       | Reserved
-	 * 7       | Stops the clock and keeps the timing generator in reset
+	* CLK_SEL | Clock Source
+	* --------+--------------------------------------
+	* 0       | Internal oscillator
+	* 1       | PLL with X Gyro reference
+	* 2       | PLL with Y Gyro reference
+	* 3       | PLL with Z Gyro reference
+	* 4       | PLL with external 32.768kHz reference
+	* 5       | PLL with external 19.2MHz reference
+	* 6       | Reserved
+	* 7       | Stops the clock and keeps the timing generator in reset
 */
 void MPU6050_SetClockSource (uint8_t source)
 {
@@ -186,7 +186,7 @@ static void MPU_SelfTest (void)
         accel[1] *= accel_sens;
         accel[2] *= accel_sens;
         dmp_set_accel_bias(accel);
-		U1SD("Setting bias succesfully......\r\n");
+		U1SD("8. set_bias_succesfully......\r\n");
     }
 }
 
@@ -213,7 +213,7 @@ static u16 inv_row_2_scale (const signed char *row)
     return b;
 }
 
-//方向矩阵额度转换
+//方向矩阵转换标量
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
 {
     u16 scalar;
@@ -234,34 +234,38 @@ void MPUInnerDMP_Init (void)
 											0,-1, 0,
 											0, 0, 1};
 
+	//设备检查，也可以调用库函数
 	i2cRead(MPU6050_DEFAULT_ADDRESS, MPU6050_RA_WHO_AM_I, 1, temp);
 
 	__ShellHeadSymbol__;
-	U1SD("Mpu_set_sensor Complete......\r\n");
+	U1SD("MPU-DMP Library Function Init......\r\nMpu_set_sensor Complete......\r\n");
 	if (temp[0] != MPU6050_DEFAULT_ADDRESS)
 		U1SD("Mpu Device Register Error, Frame Suggest Reboot\r\n");	//检查设备不成功，建议重启
+	//以下调用InvSense DMP库函数完成
 	if (!mpu_init())
 	{
+		U1SD("DMP Init OK......\r\n");
 		if (!mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL))
-			U1SD("Mpu_set_sensor Complete......\r\n");
+			U1SD("1. mpu_set_sensor Complete......\r\n");
 		if (!mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL))
-			U1SD("Mpu_configure_fifo Complete......\r\n");
+			U1SD("2. mpu_configure_fifo Complete......\r\n");
 		if (!mpu_set_sample_rate(DEFAULT_MPU_HZ))
-			U1SD("Mpu_set_sample_rate Complete......\r\n");
+			U1SD("3. mpu_set_sample_rate Complete......\r\n");
 		if (!dmp_load_motion_driver_firmware())
-			U1SD("DMP_load_motion_driver_firmware Complete......\r\n");
+			U1SD("4. dmp_load_motion_driver_firmware Complete......\r\n");
 		if (!dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation)))
-			U1SD("DMP_set_orientation Complete......\r\n");
+			U1SD("5. dmp_set_orientation Complete......\r\n");
 		if (!dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
 	        DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | 
 			DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL))
-			U1SD("DMP_enable_feature Complete......\r\n");
+			U1SD("6. dmp_enable_feature Complete......\r\n");
 		if (!dmp_set_fifo_rate(DEFAULT_MPU_HZ))
-			U1SD("DMP_set_fifo_rate Complete......\r\n");
+			U1SD("7. dmp_set_fifo_rate Complete......\r\n");
 		MPU_SelfTest();
 		if (!mpu_set_dmp_state(1))
-			U1SD("Mpu_set_dmp_state Complete ......\r\n");
+			U1SD("9. mpu_set_dmp_state Complete......\r\n");
 	}
+	U1SD("MPU-DMP All Function Init Finished\r\n");
 }
 
 //读取MPU6050内置DMP的姿态信息

@@ -230,9 +230,9 @@ void pclURC_DebugHandler (void)
 		*/
 		ModuleAA_urcDebugHandler(ed_status, (AHRS_SwitchNbr)sw_type);
 		
-		__ShellHeadSymbol__; U1SD("URC Setting Update\r\n");//URC配置更新
+		__ShellHeadSymbol__; U1SD("URC Setting Update\r\n");	//URC配置更新
 	}
-	else if (sw_type > Max_Option_Value)				//选项超值报错
+	else if (sw_type > Max_Option_Value)						//选项超值报错
 	{
 		U1SD("Option Value Excess Error\r\n");			
 		SERIALDATAERROR;		

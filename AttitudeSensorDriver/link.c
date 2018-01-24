@@ -62,7 +62,7 @@ void U1RSD_example (void)
 void OLED_ScreenP4_Const (void)
 {	
 	OLED_ShowString(strPos(1u), ROW1, (const u8*)"   Attitude   ", Font_Size);	
-	OLED_ShowString(strPos(1u), ROW2, (const u8*)"  Algorithm   ", Font_Size);	
+	OLED_ShowString(strPos(1u), ROW2, (const u8*)"   Algorithm  ", Font_Size);	
 	OLED_Refresh_Gram();
 }
 
@@ -87,17 +87,21 @@ void OLED_DisplayAA (void)
 	OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
 	OLED_ShowNum(strPos(6u), ROW2, ((u16)((Yaw + 360) * 10) % 10), 1u, Font_Size);
 	
+	//显示MPU芯片温度
+	OLED_ShowString(strPos(8u), ROW2, (const u8*)"T:", Font_Size);
+	OLED_ShowNum(strPos(10u), ROW2, MPU6050_ReadTemperature(), 3u, Font_Size);	
+	OLED_ShowString(strPos(13u), ROW2, (const u8*)".", Font_Size);
+	OLED_ShowNum(strPos(14u), ROW2, ((u16)(MPU6050_ReadTemperature() * 10) % 10), 1u, Font_Size);
+	
 	OLED_Refresh_Gram();
 }
 
-/*
-	DMP的读取在数据采集中断读取，严格遵循5ms时序要求
-	获取角度的算法 1：DMP  2：卡尔曼 3：互补滤波
-*/
+//DMP的读取在数据采集中断读取，严格遵循5ms时序要求
 void MPUDMP_SequentialRead (void)
 {
 	static u16 gyroReadSem = 0u;
 
+	//5ms时基源自于time_base算法定时器提供
 	if (gyroReadSem == TickDivsIntervalus(GRIntervalValue) - 1)
 	{
 		gyroReadSem = 0u;
