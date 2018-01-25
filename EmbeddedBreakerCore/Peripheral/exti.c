@@ -72,7 +72,12 @@ void EXTI_Config_Init (void)
 						GPIO_PinSource12, 
 						MPU_INT_EXTI_Line, 
 						EXTI_Mode_Interrupt, 
+	//设置触发沿属性
+#if MPUINT_Level == lvl
 						EXTI_Trigger_Falling, 
+#elif MPUINT_Level == hvl
+						EXTI_Trigger_Rising,
+#endif
 						EXTI15_10_IRQn, 
 						0x02, 
 						0x01);
@@ -113,9 +118,12 @@ void EXTI15_10_IRQHandler (void)
 #endif	
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	
-	//5ms触发更新
-	if (IO_MPU_INT == 0)  	
-		MPUReadInnerDMPData();   
+	/*
+		触发更新，其触发频率与DEFAULT_MPU_HZ定义有关
+		MPUInnerDMP_Init()函数初始化生效
+	*/
+	if (IO_MPU_INT == MPUINT_Level)  	
+		AttitudeAlgorithm();   										//解算处理
 	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 

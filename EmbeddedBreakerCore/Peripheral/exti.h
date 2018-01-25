@@ -13,6 +13,7 @@
 	@EmbeddedBreakerCore Extern API Insert
 */
 #define MPU_INT_EXTI_Line	EXTI_Line12								//MPU6050中断
+#define MPUINT_Level		lvl										//MPU中断INT脚有效电平
 
 //EXTI模式配置
 void ucEXTI_ModeConfig (

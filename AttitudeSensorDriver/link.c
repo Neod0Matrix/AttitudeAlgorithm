@@ -68,12 +68,9 @@ void OLED_ScreenP4_Const (void)
 void OLED_DisplayAA (void)
 {	
 	//万向节死锁
-	if (Roll < 0)
-		Roll += 360;
-	if (Pitch < 0)
-		Pitch += 360;
-	if (Yaw < 0)
-		Yaw += 360;
+	GimbalLock(Roll);
+	GimbalLock(Pitch);
+	GimbalLock(Yaw);
 		
 	//显示Roll角度
 	OLED_ShowString(strPos(0u), ROW1, (const u8*)"R:", Font_Size);

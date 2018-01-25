@@ -363,11 +363,16 @@
 
 #define IO_MPU_INT							GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12)
 
+//万向节死锁
+#ifndef GimbalLock
+#define GimbalLock(axis)					axis = (axis < 0)? axis += 360 : axis;
+#endif
+
 extern float Roll, Pitch, Yaw;
 
 void MPU6050_INT_IOInit (void);
 
-//MPU6050状态操作函数
+//MPU6050操作函数
 void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz);
 void MPU6050_SetClockSource (uint8_t source);
 void MPU6050_SetFullScaleGyroRange (uint8_t range);
@@ -381,11 +386,11 @@ void MPU6050_DeviceInit (void);
 void MPUInnerDMP_Init (void);
 float MPU6050_ReadTemperature (void);
 
-//解算
+//解算库
 static u16 inv_row_2_scale (const signed char *row);
-void MPUReadInnerDMPData (void);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
 static void MPU_SelfTest (void);
+void AttitudeAlgorithm (void);
 
 #endif
 

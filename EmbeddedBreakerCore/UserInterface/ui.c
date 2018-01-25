@@ -99,6 +99,9 @@ void OLED_DisplayInitConst (void)
 {
 	if (OLED_Switch == OLED_Enable)
 	{
+		/*
+			@EmbeddedBreakerCore Extern API Insert
+		*/
 		//OLED_ScreenP0_Const();	
 		OLED_ScreenP4_Const();
 		delay_ms(300);						//logo延迟
@@ -290,6 +293,9 @@ void UIScreen_DisplayHandler (void)
 		switch (pageUpdate)
 		{
 		case 0: 
+			/*
+				@EmbeddedBreakerCore Extern API Insert
+			*/
 			//OLED_ScreenP0_Const(); 
 			OLED_ScreenP4_Const(); 
 			break;

@@ -285,14 +285,14 @@ void MPUInnerDMP_Init (void)
 	}
 }
 
-//读取MPU6050内置DMP的姿态信息
-void MPUReadInnerDMPData (void)
+//本模块同名函数，读取MPU6050内置DMP的姿态信息
+void AttitudeAlgorithm (void)
 {	
 	unsigned long sensor_timestamp;
 	u8 more;
 	long quat[4];
 	short gyro[3], accel[3], sensors;
-	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
+	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	//解算算子
 
 	//读取一次，写入FIFO数组
 	dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);		
@@ -309,12 +309,9 @@ void MPUReadInnerDMPData (void)
 		Yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3;
 		
 		//万向节死锁
-		if (Roll < 0)
-			Roll += 360;
-		if (Pitch < 0)
-			Pitch += 360;
-		if (Yaw < 0)
-			Yaw += 360;
+		GimbalLock(Roll);
+		GimbalLock(Pitch);
+		GimbalLock(Yaw);
 	}
 	else
 	{
