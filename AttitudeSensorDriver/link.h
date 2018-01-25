@@ -77,11 +77,6 @@ void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type);
 void OLED_ScreenP4_Const (void);
 void OLED_DisplayAA (void);
 
-void MPUDMP_SequentialRead (void);
-
-void oled_show(void);
-void APP_Show(void);
-
 #endif
 
 //====================================================================================================

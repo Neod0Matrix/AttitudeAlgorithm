@@ -358,10 +358,14 @@
 #define MPU6050_WHO_AM_I_BIT        		6
 #define MPU6050_WHO_AM_I_LENGTH     		6
 
-#define DEFAULT_MPU_HZ  					200
-#define q30  								pow(2, 30)
+#define DEFAULT_MPU_HZ  					200				//每隔5msMPU INT脚产生一个下降沿读取数据，频率200hz
+#define q30  								1073741824.0f 	//pow(2, 30)
+
+#define IO_MPU_INT							GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12)
 
 extern float Roll, Pitch, Yaw;
+
+void MPU6050_INT_IOInit (void);
 
 //MPU6050状态操作函数
 void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz);

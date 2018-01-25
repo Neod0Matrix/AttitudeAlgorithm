@@ -63,6 +63,19 @@ void EXTI_Config_Init (void)
 							0x01, 
 							0x01);
 	}
+	
+	/*
+		@EmbeddedBreakerCore Extern API Insert
+	*/
+	MPU6050_INT_IOInit();
+	ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
+						GPIO_PinSource12, 
+						MPU_INT_EXTI_Line, 
+						EXTI_Mode_Interrupt, 
+						EXTI_Trigger_Falling, 
+						EXTI15_10_IRQn, 
+						0x02, 
+						0x01);
 }
 
 //STEW--PB8
@@ -84,6 +97,25 @@ void EXTI9_5_IRQHandler (void)
 		ERROR_CLEAR;												//急停复位后自动清除警报	
 	}
 	EXTI_ClearITPendingBit(Stew_EXTI_Line);  						//清除EXTI线路挂起位
+	
+#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
+	OSIntExit();  											 
+#endif
+}
+
+/*
+	@EmbeddedBreakerCore Extern API Insert
+*/
+void EXTI15_10_IRQHandler (void)
+{
+#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
+	OSIntEnter();    
+#endif	
+	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
+	
+	//5ms触发更新
+	if (IO_MPU_INT == 0)  	
+		MPUReadInnerDMPData();   
 	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 

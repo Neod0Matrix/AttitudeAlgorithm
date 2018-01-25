@@ -139,9 +139,23 @@ void MPU6050_SetI2CBypassEnabled (uint8_t enabled)
 						enabled);
 }
 
+//MPU更新引脚INT PB12
+void MPU6050_INT_IOInit (void)
+{
+	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO,			
+						GPIO_Mode_IPU,					
+						GPIO_Input_Speed,					//无效参数						
+						GPIO_Remap_SWJ_JTAGDisable,							
+						GPIO_Pin_12,					
+						GPIOB,					
+						NI,				
+						EBO_Disable);
+}
+
 //初始化MPU6050设备
 void MPU6050_DeviceInit (void) 
 {
+	invI2C_IO_Init();										//I2C接口初始化
     MPU6050_SetClockSource(MPU6050_CLOCK_PLL_YGYRO); 		//设置时钟
     MPU6050_SetFullScaleGyroRange(MPU6050_GYRO_FS_2000);	//陀螺仪最大量程 +-1000度每秒
     MPU6050_SetFullScaleAccelRange(MPU6050_ACCEL_FS_2);		//加速度度最大量程 +-2G
@@ -160,7 +174,7 @@ float MPU6050_ReadTemperature (void)
 		+ invI2C_ReadDevByte(devAddr, MPU6050_RA_TEMP_OUT_L);
 	if (Temp > 32768) 
 		Temp -= 65536;
-	Temp = (36.53 + Temp / 340) * 10;
+	Temp = 36.53 + Temp / 340;
 	
 	return Temp;
 }
@@ -188,6 +202,8 @@ static void MPU_SelfTest (void)
         dmp_set_accel_bias(accel);
 		U1SD("8. set_bias_succesfully......\r\n");
     }
+	else
+		U1SD("8. set_bias_fatal......\r\n");
 }
 
 //方向矩阵辅助转换函数
@@ -230,9 +246,10 @@ void MPUInnerDMP_Init (void)
 { 
 	u8 temp[1] = {0};
 	//解算矩阵
-	static signed char gyro_orientation[9] = {-1, 0, 0,
-											0,-1, 0,
-											0, 0, 1};
+	signed char gyro_orientation[9] = 
+		{-1, 0, 0,
+		0, -1, 0,
+		0, 0, 1};
 
 	//设备检查，也可以调用库函数
 	i2cRead(MPU6050_DEFAULT_ADDRESS, MPU6050_RA_WHO_AM_I, 1, temp);
@@ -246,26 +263,26 @@ void MPUInnerDMP_Init (void)
 	{
 		U1SD("DMP Init OK......\r\n");
 		if (!mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL))
-			U1SD("1. mpu_set_sensor Complete......\r\n");
+			U1SD("1. mpu_set_sensor complete......\r\n");
 		if (!mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL))
-			U1SD("2. mpu_configure_fifo Complete......\r\n");
+			U1SD("2. mpu_configure_fifo complete......\r\n");
 		if (!mpu_set_sample_rate(DEFAULT_MPU_HZ))
-			U1SD("3. mpu_set_sample_rate Complete......\r\n");
+			U1SD("3. mpu_set_sample_rate complete......\r\n");
 		if (!dmp_load_motion_driver_firmware())
-			U1SD("4. dmp_load_motion_driver_firmware Complete......\r\n");
+			U1SD("4. dmp_load_motion_driver_firmware complete......\r\n");
 		if (!dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation)))
-			U1SD("5. dmp_set_orientation Complete......\r\n");
+			U1SD("5. dmp_set_orientation complete......\r\n");
 		if (!dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
 	        DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | 
 			DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL))
-			U1SD("6. dmp_enable_feature Complete......\r\n");
+			U1SD("6. dmp_enable_feature complete......\r\n");
 		if (!dmp_set_fifo_rate(DEFAULT_MPU_HZ))
-			U1SD("7. dmp_set_fifo_rate Complete......\r\n");
+			U1SD("7. dmp_set_fifo_rate complete......\r\n");
 		MPU_SelfTest();
 		if (!mpu_set_dmp_state(1))
-			U1SD("9. mpu_set_dmp_state Complete......\r\n");
+			U1SD("9. mpu_set_dmp_state complete......\r\n");
+		U1SD("MPU-DMP All Function Init Finished\r\n");
 	}
-	U1SD("MPU-DMP All Function Init Finished\r\n");
 }
 
 //读取MPU6050内置DMP的姿态信息
@@ -274,8 +291,8 @@ void MPUReadInnerDMPData (void)
 	unsigned long sensor_timestamp;
 	u8 more;
 	long quat[4];
-	static short gyro[3], accel[3], sensors;
-	static float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
+	short gyro[3], accel[3], sensors;
+	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
 
 	//读取一次，写入FIFO数组
 	dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);		
@@ -290,6 +307,19 @@ void MPUReadInnerDMPData (void)
 		Roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3; 
 		Pitch = asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3; 	 
 		Yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3;
+		
+		//万向节死锁
+		if (Roll < 0)
+			Roll += 360;
+		if (Pitch < 0)
+			Pitch += 360;
+		if (Yaw < 0)
+			Yaw += 360;
+	}
+	else
+	{
+		__ShellHeadSymbol__;
+		U1SD("MPU Inner DMP Read Algorithm Fatal\r\n");
 	}
 }
 

@@ -5,8 +5,6 @@
 //模块MotorMotionControl对框架EmbeddBreakerCore的链接
 //该文件写入对框架的函数调用支持
 
-#define GRIntervalValue		5000u
-
 Stew_EXTI_Setting			StewEXTI_Switch;
 
 //链接到Universal_Resource_Config函数的模块库
@@ -69,23 +67,31 @@ void OLED_ScreenP4_Const (void)
 //OLED AttitudeAlgorithm数据显示
 void OLED_DisplayAA (void)
 {	
+	//万向节死锁
+	if (Roll < 0)
+		Roll += 360;
+	if (Pitch < 0)
+		Pitch += 360;
+	if (Yaw < 0)
+		Yaw += 360;
+		
 	//显示Roll角度
 	OLED_ShowString(strPos(0u), ROW1, (const u8*)"R:", Font_Size);
-	OLED_ShowNum(strPos(2u), ROW1, Roll + 360, 3u, Font_Size);	
+	OLED_ShowNum(strPos(2u), ROW1, Roll, 3u, Font_Size);	
 	OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(6u), ROW1, ((u16)((Roll + 360) * 10) % 10), 1u, Font_Size);
+	OLED_ShowNum(strPos(6u), ROW1, ((u16)((Roll) * 10) % 10), 1u, Font_Size);
 	
 	//显示Pitch角度
 	OLED_ShowString(strPos(8u), ROW1, (const u8*)"P:", Font_Size);
-	OLED_ShowNum(strPos(10u), ROW1, Pitch + 360, 3u, Font_Size);	
+	OLED_ShowNum(strPos(10u), ROW1, Pitch, 3u, Font_Size);	
 	OLED_ShowString(strPos(13u), ROW1, (const u8*)".", Font_Size);
 	OLED_ShowNum(strPos(14u), ROW1, ((u16)((Pitch + 360) * 10) % 10), 1u, Font_Size);
 	
 	//显示Yaw角度
 	OLED_ShowString(strPos(0u), ROW2, (const u8*)"Y:", Font_Size);
-	OLED_ShowNum(strPos(2u), ROW2, Yaw + 360, 3u, Font_Size);	
+	OLED_ShowNum(strPos(2u), ROW2, Yaw, 3u, Font_Size);	
 	OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(6u), ROW2, ((u16)((Yaw + 360) * 10) % 10), 1u, Font_Size);
+	OLED_ShowNum(strPos(6u), ROW2, ((u16)((Yaw) * 10) % 10), 1u, Font_Size);
 	
 	//显示MPU芯片温度
 	OLED_ShowString(strPos(8u), ROW2, (const u8*)"T:", Font_Size);
@@ -94,20 +100,6 @@ void OLED_DisplayAA (void)
 	OLED_ShowNum(strPos(14u), ROW2, ((u16)(MPU6050_ReadTemperature() * 10) % 10), 1u, Font_Size);
 	
 	OLED_Refresh_Gram();
-}
-
-//DMP的读取在数据采集中断读取，严格遵循5ms时序要求
-void MPUDMP_SequentialRead (void)
-{
-	static u16 gyroReadSem = 0u;
-
-	//5ms时基源自于time_base算法定时器提供
-	if (gyroReadSem == TickDivsIntervalus(GRIntervalValue) - 1)
-	{
-		gyroReadSem = 0u;
-		MPUReadInnerDMPData();    												
-	}
-	gyroReadSem++;												//信号量开始计数	
 }
 
 /*

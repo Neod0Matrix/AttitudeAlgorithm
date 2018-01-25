@@ -9,6 +9,11 @@
 //总线设置					
 #define Stew_EXTI_Line 		EXTI_Line8								//急停	
 
+/*
+	@EmbeddedBreakerCore Extern API Insert
+*/
+#define MPU_INT_EXTI_Line	EXTI_Line12								//MPU6050中断
+
 //EXTI模式配置
 void ucEXTI_ModeConfig (
 						uint8_t 			io_group, 				//IO分组

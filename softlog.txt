@@ -3,6 +3,7 @@ v0p0_LTE:
 v0p1_LTE:
 	添加IMU解算库和MPU底层驱动库
 	完善对框架链接库
+	修复I2C库 bug
 v0p2_LTE:
 	
 v0p3_LTE:

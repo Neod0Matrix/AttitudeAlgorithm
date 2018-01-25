@@ -17,12 +17,12 @@ void GyroI2C_SDAMode_Setting (i2c_SDA_RW_Switcher sta)
 //IIC IO初始化
 void invI2C_IO_Init (void)
 {			
-	//PB10 PB11 开漏输出
+	//PB10 PB11 推挽输出
 	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB,			
-						GPIO_Mode_Out_OD,				//数据传输开漏	
+						GPIO_Mode_Out_PP,			
 						GPIO_Speed_50MHz,						
-						GPIORemapSettingNULL,			
-						IO_GYI2C_SCL | IO_GYI2C_SDA_W,					
+						GPIORemapSettingNULL,		
+						GPIO_Pin_10 | GPIO_Pin_11,					
 						GPIOB,				
 						IHL,				
 						EBO_Disable);
@@ -266,6 +266,7 @@ u8 invI2C_ReadDevLenBytes (u8 dev, u8 reg, u8 length, u8 *data)
 Bool_ClassType invI2C_WriteDevLenBytes (u8 dev, u8 reg, u8 length, u8* data)
 {  
  	u8 count = 0;
+	
 	invI2C_Start();
 	invI2C_SendByte(dev);
 	invI2C_WaitAck();
@@ -282,7 +283,7 @@ Bool_ClassType invI2C_WriteDevLenBytes (u8 dev, u8 reg, u8 length, u8* data)
 }
 
 //I2C读指定设备寄存器里的指定值
-u8 invI2C_ReadRegValue (u8 dev, u8 reg, u8 *data)
+Bool_ClassType invI2C_ReadRegValue (u8 dev, u8 reg, u8 *data)
 {
 	//有可能返回false
 	*data = invI2C_ReadDevByte(dev, reg);
@@ -291,13 +292,13 @@ u8 invI2C_ReadRegValue (u8 dev, u8 reg, u8 *data)
 }
 
 //I2C向指定寄存器设备写值
-u8 invI2C_WriteRegValue (u8 dev, u8 reg, u8 data)
+Bool_ClassType invI2C_WriteRegValue (u8 dev, u8 reg, u8 data)
 {
-    return invI2C_ReadDevLenBytes(dev, reg, 1, &data);
+    return invI2C_WriteDevLenBytes(dev, reg, 1, &data);
 }
 
 //I2C对指定设备寄存器多位操作
-u8 invI2C_WriteRegBits (u8 dev, u8 reg, u8 bitStart, u8 length, u8 data)
+Bool_ClassType invI2C_WriteRegBits (u8 dev, u8 reg, u8 bitStart, u8 length, u8 data)
 {
     u8 b, mask;
 	
@@ -312,15 +313,16 @@ u8 invI2C_WriteRegBits (u8 dev, u8 reg, u8 bitStart, u8 length, u8 data)
         return invI2C_WriteRegValue(dev, reg, b);
     } 
 	else 
-        return 0;
+        return False;
 }
 
 //I2C对指定寄存器值一位操作
-u8 invI2C_WriteRegBit (u8 dev, u8 reg, u8 bitNum, u8 data)
+Bool_ClassType invI2C_WriteRegBit (u8 dev, u8 reg, u8 bitNum, u8 data)
 {
     u8 b;
 	
     invI2C_ReadRegValue(dev, reg, &b);
+	//data为0时目标位将被清0否则置位
     b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
 	
     return invI2C_WriteRegValue(dev, reg, b);
