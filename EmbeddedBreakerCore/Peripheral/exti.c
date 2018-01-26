@@ -67,12 +67,19 @@ void EXTI_Config_Init (void)
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
-	MPU6050_INT_IOInit();
+	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO,			
+						GPIO_Mode_IPU,						//一般设置成上拉输入					
+						GPIO_Input_Speed,					//无效参数						
+						GPIO_Remap_SWJ_JTAGDisable,							
+						GPIO_Pin_12,					
+						GPIOB,					
+						IHL,								//NI			
+						EBO_Disable);
 	ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
 						GPIO_PinSource12, 
 						MPU_INT_EXTI_Line, 
 						EXTI_Mode_Interrupt, 
-	//设置触发沿属性
+						//设置触发沿属性
 #if MPUINT_Level == lvl
 						EXTI_Trigger_Falling, 
 #elif MPUINT_Level == hvl
@@ -80,7 +87,7 @@ void EXTI_Config_Init (void)
 #endif
 						EXTI15_10_IRQn, 
 						0x02, 
-						0x01);
+						0x02);
 }
 
 //STEW--PB8
@@ -93,6 +100,7 @@ void EXTI9_5_IRQHandler (void)
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
+	EXTI_ClearITPendingBit(Stew_EXTI_Line);  						//清除EXTI线路挂起位
 	if (StewEXTI_Switch == StewEXTI_Enable && STEW_LTrigger)  		//长按检测急停
 	{
 		EMERGENCYSTOP;												
@@ -101,7 +109,6 @@ void EXTI9_5_IRQHandler (void)
 		while (STEW_LTrigger);										//等待急停释放，允许长期检测
 		ERROR_CLEAR;												//急停复位后自动清除警报	
 	}
-	EXTI_ClearITPendingBit(Stew_EXTI_Line);  						//清除EXTI线路挂起位
 	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 
@@ -116,15 +123,19 @@ void EXTI15_10_IRQHandler (void)
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntEnter();    
 #endif	
-	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	
 	/*
+		这里读取的是单个信号不是按键，写法有所不同
 		触发更新，其触发频率与DEFAULT_MPU_HZ定义有关
-		MPUInnerDMP_Init()函数初始化生效
+		必须按照时序严格读取，否则会不间断返回fatal
+		底层初始化完成开始读取
 	*/
-	if (IO_MPU_INT == MPUINT_Level)  	
-		AttitudeAlgorithm();   										//解算处理
-	
+	if (EXTI_GetITStatus(MPU_INT_EXTI_Line) != RESET)
+	{
+		EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  				//清除EXTI线路挂起位
+		AttitudeAlgorithm(); 										//姿态解算
+	}
+		
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 
 #endif

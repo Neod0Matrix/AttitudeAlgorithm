@@ -3,27 +3,57 @@
 //author: Neod Anderjon
 //====================================================================================================
 //MPU6050解析重写IIC
+
+//IO总线定义
+#define GyroAPBx_RCCBus			RCC_APB2Periph_GPIOB
+#define Gyro_GPIOx				GPIOB
+#define Gyro_SCL_Pin			GPIO_Pin_10							//SCL PB10
+#define Gyro_SDA_Pin			GPIO_Pin_11							//SDA PB11
+#define IO_GYI2C_SCL    		PBout(10) //SCL
+#define IO_GYI2C_SDA_W    		PBout(11) //写SDA	 
+//#define IO_GYI2C_SDA_R   		PBin(11)  //读SDA 
+#define IO_GYI2C_SDA_R			GPIO_ReadInputDataBit(Gyro_GPIOx, Gyro_SDA_Pin)
  
 //陀螺仪IIC SDA 模式转换 
 void GyroI2C_SDAMode_Setting (i2c_SDA_RW_Switcher sta)
 {
-	switch (sta)
+	//GPIOB -> CRH &= 0XFFFF0FFF;
+	if (sta == SDA_Ws)
 	{
-	case SDA_Ws: {GPIOB -> CRH &= 0XFFFF0FFF; GPIOB -> CRH |= 3 << 12;} break;
-	case SDA_Rs: {GPIOB -> CRH &= 0XFFFF0FFF; GPIOB -> CRH |= 8 << 12;} break;
+		//GPIOB -> CRH |= 3 << 12;
+		ucGPIO_Config_Init (GyroAPBx_RCCBus,			
+							GPIO_Mode_Out_OD,							//数据传输开漏			
+							GPIO_Speed_50MHz,						
+							GPIORemapSettingNULL,			
+							Gyro_SDA_Pin,					
+							Gyro_GPIOx,					
+							NI,				
+							EBO_Disable);
+	}
+	else
+	{
+		//GPIOB -> CRH |= 8 << 12;
+		ucGPIO_Config_Init (GyroAPBx_RCCBus,			
+							GPIO_Mode_IN_FLOATING,						//数据浮空输入
+							GPIO_Input_Speed,						
+							GPIORemapSettingNULL,			
+							Gyro_SDA_Pin,					
+							Gyro_GPIOx,					
+							NI,				
+							EBO_Disable);
 	}
 }	
  
 //IIC IO初始化
 void invI2C_IO_Init (void)
 {			
-	//PB10 PB11 推挽输出
-	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB,			
-						GPIO_Mode_Out_PP,			
+	//数据开漏输出
+	ucGPIO_Config_Init (GyroAPBx_RCCBus,			
+						GPIO_Mode_Out_OD,			
 						GPIO_Speed_50MHz,						
 						GPIORemapSettingNULL,		
-						GPIO_Pin_10 | GPIO_Pin_11,					
-						GPIOB,				
+						Gyro_SCL_Pin | Gyro_SDA_Pin,					
+						Gyro_GPIOx,				
 						IHL,				
 						EBO_Disable);
 }
@@ -130,7 +160,7 @@ void invI2C_SendByte (u8 txd)
 } 	 
 
 //I2C读取一个字节
-u8 invI2C_ReadByte (u8 ack)
+u8 invI2C_ReadByte (Bool_ClassType ack)
 {
 	u8 i, receive = 0;
 	
@@ -204,9 +234,9 @@ Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
     while (len) 
 	{
         if (len == 1)
-            *buf = invI2C_ReadByte(0);
+            *buf = invI2C_ReadByte(False);
         else
-            *buf = invI2C_ReadByte(1);
+            *buf = invI2C_ReadByte(True);
         buf++;
         len--;
     }
@@ -231,7 +261,7 @@ u8 invI2C_ReadDevByte (u8 dev, u8 addr)
 	invI2C_SendByte(dev + 1); 
 	res++;        
 	invI2C_WaitAck();
-	res = invI2C_ReadByte(0);	   
+	res = invI2C_ReadByte(False);	   
     invI2C_Stop();
 
 	return res;
@@ -253,9 +283,9 @@ u8 invI2C_ReadDevLenBytes (u8 dev, u8 reg, u8 length, u8 *data)
     for (count = 0; count < length; count++)
 	{ 
 		if (count != length - 1)
-			data[count] = invI2C_ReadByte(1);  
+			data[count] = invI2C_ReadByte(True);  
 		else  
-			data[count] = invI2C_ReadByte(0);	 
+			data[count] = invI2C_ReadByte(False);	 
 	}
     invI2C_Stop();
 	
@@ -300,7 +330,7 @@ Bool_ClassType invI2C_WriteRegValue (u8 dev, u8 reg, u8 data)
 //I2C对指定设备寄存器多位操作
 Bool_ClassType invI2C_WriteRegBits (u8 dev, u8 reg, u8 bitStart, u8 length, u8 data)
 {
-    u8 b, mask;
+    u8 b, mask = 0;
 	
     if (invI2C_ReadRegValue(dev, reg, &b) != 0) 
 	{

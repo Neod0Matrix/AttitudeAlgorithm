@@ -4,7 +4,7 @@
 //====================================================================================================
 //MPU6050基础驱动
 
-float Roll, Pitch, Yaw;
+float Roll = 0.f, Pitch = 0.f, Yaw = 0.f;
 
 //MPU6050数据读取寄存更新
 void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz)
@@ -86,17 +86,13 @@ void MPU6050_SetFullScaleAccelRange (uint8_t range)
 						range);
 }
 
-/*
-	设置MPU6050是否进入睡眠模式
-	enabled = 1   睡觉
-	enabled = 0   工作
-*/
-void MPU6050_SetSleepEnabled (uint8_t enabled) 
+//设置MPU6050是否进入睡眠模式
+void MPU6050_SetSleepEnabled (FunctionalState ctrl) 
 {
     invI2C_WriteRegBit(	devAddr, 
 						MPU6050_RA_PWR_MGMT_1, 
 						MPU6050_PWR1_SLEEP_BIT, 
-						enabled);
+						(!ctrl));
 }
 
 //读取MPU6050 WHO_AM_I标识将返回0x68(104)
@@ -122,34 +118,21 @@ Bool_ClassType MPU6050_TestConnection (void)
 }
 
 //设置MPU6050是否为AUX I2C线的主机
-void MPU6050_SetI2CMasterModeEnabled (uint8_t enabled) 
+void MPU6050_SetI2CMasterModeEnabled (FunctionalState ctrl) 
 {
     invI2C_WriteRegBit( devAddr, 
 						MPU6050_RA_USER_CTRL, 
 						MPU6050_USERCTRL_I2C_MST_EN_BIT, 
-						enabled);
+						(!ctrl));
 }
 
 //设置 MPU6050是否为AUX I2C线的主机
-void MPU6050_SetI2CBypassEnabled (uint8_t enabled) 
+void MPU6050_SetI2CBypassEnabled (FunctionalState ctrl) 
 {
     invI2C_WriteRegBit(	devAddr, 
 						MPU6050_RA_INT_PIN_CFG, 
 						MPU6050_INTCFG_I2C_BYPASS_EN_BIT, 
-						enabled);
-}
-
-//MPU更新引脚INT PB12
-void MPU6050_INT_IOInit (void)
-{
-	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO,			
-						GPIO_Mode_IPU,					
-						GPIO_Input_Speed,					//无效参数						
-						GPIO_Remap_SWJ_JTAGDisable,							
-						GPIO_Pin_12,					
-						GPIOB,					
-						NI,				
-						EBO_Disable);
+						(!ctrl));
 }
 
 //初始化MPU6050设备
@@ -159,9 +142,9 @@ void MPU6050_DeviceInit (void)
     MPU6050_SetClockSource(MPU6050_CLOCK_PLL_YGYRO); 		//设置时钟
     MPU6050_SetFullScaleGyroRange(MPU6050_GYRO_FS_2000);	//陀螺仪最大量程 +-1000度每秒
     MPU6050_SetFullScaleAccelRange(MPU6050_ACCEL_FS_2);		//加速度度最大量程 +-2G
-    MPU6050_SetSleepEnabled(0); 							//进入工作状态
-	MPU6050_SetI2CMasterModeEnabled(0);	 					//不让MPU6050控制AUXI2C
-	MPU6050_SetI2CBypassEnabled(0);	 						//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
+    MPU6050_SetSleepEnabled(ENABLE); 						//进入工作状态
+	MPU6050_SetI2CMasterModeEnabled(ENABLE);	 			//不让MPU6050控制AUXI2C
+	MPU6050_SetI2CBypassEnabled(ENABLE);	 				//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
 	MPUInnerDMP_Init();										//内置DMP初始化
 }
 
@@ -182,10 +165,10 @@ float MPU6050_ReadTemperature (void)
 //MPU自检测试
 static void MPU_SelfTest (void)
 {
-    int result;
+    int result = 0;
     long gyro[3], accel[3];
-	float sens;
-	u16 accel_sens;
+	float sens = 0.f;
+	u16 accel_sens = 0;
 	
     result = mpu_run_self_test(gyro, accel);
     if (result == 0x7) 
@@ -285,16 +268,20 @@ void MPUInnerDMP_Init (void)
 	}
 }
 
-//本模块同名函数，读取MPU6050内置DMP的姿态信息
-void AttitudeAlgorithm (void)
+/**
+  * @brief  Read mpu inner dmp attitude info and calculate it.
+  * @param  None.
+  * @retval Calculate euler successfully or fatal.
+  */
+Bool_ClassType AttitudeAlgorithm (void)
 {	
-	unsigned long sensor_timestamp;
 	u8 more;
+	unsigned long sensor_timestamp;
 	long quat[4];
 	short gyro[3], accel[3], sensors;
-	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	//解算算子
+	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	//calculation bias
 
-	//读取一次，写入FIFO数组
+	//read dmp once and write into array memory
 	dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);		
 	if (sensors & INV_WXYZ_QUAT)
 	{    
@@ -303,20 +290,24 @@ void AttitudeAlgorithm (void)
 		q2 = quat[2] / q30;
 		q3 = quat[3] / q30;
 		
-		//矩阵解算
-		Roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3; 
-		Pitch = asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3; 	 
-		Yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3;
+		//matrix transfer
+		Roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3f; 
+		Pitch = asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3f; 	 
+		Yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3f;
 		
-		//万向节死锁
-		GimbalLock(Roll);
-		GimbalLock(Pitch);
-		GimbalLock(Yaw);
+		RadRangeLimitExcess(Roll);
+		RadRangeLimitExcess(Pitch);
+		RadRangeLimitExcess(Yaw);
+		
+		return False;
 	}
+	//calculate fatal
 	else
 	{
-		__ShellHeadSymbol__;
-		U1SD("MPU Inner DMP Read Algorithm Fatal\r\n");
+		__ShellHeadSymbol__; 
+		U1SD("Attitude-Algorithm Core Module Process Fatal\r\n");
+		
+		return True;
 	}
 }
 

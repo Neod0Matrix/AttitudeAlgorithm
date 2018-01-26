@@ -67,10 +67,9 @@ void OLED_ScreenP4_Const (void)
 //OLED AttitudeAlgorithm数据显示
 void OLED_DisplayAA (void)
 {	
-	//万向节死锁
-	GimbalLock(Roll);
-	GimbalLock(Pitch);
-	GimbalLock(Yaw);
+	RadRangeLimitExcess(Roll);
+	RadRangeLimitExcess(Pitch);
+	RadRangeLimitExcess(Yaw);
 		
 	//显示Roll角度
 	OLED_ShowString(strPos(0u), ROW1, (const u8*)"R:", Font_Size);
