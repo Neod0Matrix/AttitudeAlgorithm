@@ -8,7 +8,7 @@ Copyright
 Update
 ===============
 
-	最后更新时间: 2018/01/27pm1550
+	最后更新时间: 2018/01/27pm1750
 
 Project Manual
 ==============
@@ -73,7 +73,7 @@ Inner IO Map
 	PB9 ----
 	PB10 --- GYRO_SCL
 	PB11 --- GYRO_SDA	I	
-	PB12 --- 			
+	PB12 --- GYRO_INT	I			
 	PB13 --- OLED_SCL
 	PB14 --- 			
 	PB15 --- OLED_SDA	I

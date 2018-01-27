@@ -127,13 +127,12 @@ void EXTI15_10_IRQHandler (void)
 	/*
 		这里读取的是单个信号不是按键，写法有所不同
 		触发更新，其触发频率与DEFAULT_MPU_HZ定义有关
-		必须按照时序严格读取，否则会不间断返回fatal
 		底层初始化完成开始读取
 	*/
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
-	if (pwsf != JBoot)
-		dmpAttitudeAlgorithm(&eas);
-		
+//	if (pwsf != JBoot && Is_MPUDataTransfer_Finished)
+//		dmpAttitudeAlgorithm(&eas);
+	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 
 #endif

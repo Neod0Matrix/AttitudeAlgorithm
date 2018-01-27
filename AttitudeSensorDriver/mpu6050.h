@@ -393,6 +393,7 @@ void MPU6050_SetI2CMasterModeEnabled (FunctionalState ctrl);
 void MPU6050_SetI2CBypassEnabled (FunctionalState ctrl);
 void MPU6050_SetDataInterrupt (void);
 void MPU6050_DeviceInit (void);
+void MPU6050_BeforeDelay (void);
 void MPU6050_SetInnerDMPInit (void);
 float MPU6050_ReadTemperature (void);
 
@@ -401,7 +402,7 @@ float invSqrt (float x);
 static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
 Bool_ClassType run_self_test (void);
-void dmpAttitudeAlgorithm (EulerAngleStructure *ea);
+uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea);
 
 #endif
 

@@ -135,13 +135,13 @@ void MPU6050_SetInnerDMPInit (void)
 										0, 	-1, 0,
 										0, 	0, 	1};
 
-	__ShellHeadSymbol__; U1SD("InvSense DMP Library Function Init ->\r\n");
+	__ShellHeadSymbol__; U1SD("InvenSense DMP Library Function Init ->\r\n");
 		
 	i2cRead(MPU6050_DEFAULT_ADDRESS, MPU6050_RA_WHO_AM_I, 1, readID);	//设备检查，也可以调用库函数
 	if (readID[0] != MPU6050_DEFAULT_ADDRESS)
-		U1SD("Mpu Device Register Fatal, Suggest @Reboot\r\n");			//检查设备不成功，建议重启
+		U1SD("\r\n[E] Mpu Device Register Fatal, Suggest @Reboot\r\n");			//检查设备不成功，建议重启
 	
-	//@InvSense DMP library call
+	//@InvenSense DMP library call
 	if (!mpu_init())
 	{
 		U1SD("\r\n[0] mpu_device_register complete\r\n");
@@ -218,7 +218,7 @@ void MPU6050_SetFullScaleAccelRange (uint8_t range)
 						range);
 }
 
-//读取MPU6050 WHO_AM_I标识将返回0x68(104)
+//读取MPU6050 WHO_AM_I标识将返回默认0x68
 uint8_t MPU6050_GetDeviceID (void) 
 {
 	uint8_t buffer[14];
@@ -237,7 +237,7 @@ void MPU6050_SetSleepEnabled (FunctionalState ctrl)
     invI2C_WriteRegBit(	devAddr, 
 						MPU6050_RA_PWR_MGMT_1, 
 						MPU6050_PWR1_SLEEP_BIT, 
-						(!ctrl));
+						ctrl);
 }
 
 //设置MPU6050是否为AUX I2C线的主机
@@ -246,7 +246,7 @@ void MPU6050_SetI2CMasterModeEnabled (FunctionalState ctrl)
     invI2C_WriteRegBit( devAddr, 
 						MPU6050_RA_USER_CTRL, 
 						MPU6050_USERCTRL_I2C_MST_EN_BIT, 
-						(!ctrl));
+						ctrl);
 }
 
 //设置 MPU6050是否为AUX I2C线的主机
@@ -255,7 +255,7 @@ void MPU6050_SetI2CBypassEnabled (FunctionalState ctrl)
     invI2C_WriteRegBit(	devAddr, 
 						MPU6050_RA_INT_PIN_CFG, 
 						MPU6050_INTCFG_I2C_BYPASS_EN_BIT, 
-						(!ctrl));
+						ctrl);
 }
 
 //设置MPU6050数据转换完成中断模式
@@ -276,17 +276,27 @@ Bool_ClassType MPU6050_TestConnection (void)
 	return (MPU6050_GetDeviceID() == MPU6050_DEFAULT_ADDRESS)? True : False;
 }
 
+//初始化前的短暂延时
+void MPU6050_BeforeDelay (void)
+{
+	u16 i, j;
+	
+	for (i = 0; i < 1000; i++)
+		for (j = 0; j < 1000; j++);
+}
+
 //初始化MPU6050设备
 void MPU6050_DeviceInit (void) 
 {
 	EulerAngleStructureInit(&eas);
 	invI2C_IO_Init();										//I2C接口初始化
+	MPU6050_BeforeDelay();									//初始化延时
     MPU6050_SetClockSource(MPU6050_CLOCK_PLL_XGYRO); 		//设置时钟
     MPU6050_SetFullScaleGyroRange(MPU6050_GYRO_FS_2000);	//陀螺仪最大量程 +-1000度每秒
     MPU6050_SetFullScaleAccelRange(MPU6050_ACCEL_FS_2);		//加速度度最大量程 +-2G
-    MPU6050_SetSleepEnabled(ENABLE); 						//进入工作状态
-	MPU6050_SetI2CMasterModeEnabled(ENABLE);	 			//不让MPU6050控制AUXI2C
-	MPU6050_SetI2CBypassEnabled(ENABLE);	 				//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
+    MPU6050_SetSleepEnabled(DISABLE); 						//进入工作状态
+	MPU6050_SetI2CMasterModeEnabled(DISABLE);	 			//不让MPU6050控制AUXI2C
+	MPU6050_SetI2CBypassEnabled(DISABLE);	 				//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
 	MPU6050_SetInnerDMPInit();								//内置DMP初始化
 	MPU6050_SetDataInterrupt();								//设置数据中断模式
 }
@@ -310,40 +320,46 @@ float MPU6050_ReadTemperature (void)
   * @param  None.
   * @retval Calculate euler successfully or fatal.
   */
-void dmpAttitudeAlgorithm (EulerAngleStructure *ea)
+uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 {	
 	u8 more;
 	unsigned long sensor_timestamp;
 	long quat[4];										//四元数获取
 	short gyro[3], accel[3], sensors;
 	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	//calculation bias
-
+	
 	//read dmp once and write into array memory
-	if (Is_MPUDataTransfer_Finished)
-	{
-		dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);
-		__ShellHeadSymbol__; 	
-		if (sensors & INV_WXYZ_QUAT)
-		{    
-			U1SD("Attitude Algorithm Method: DMP, Process OK\r\n");	
-			q0 = quat[0] / q30;
-			q1 = quat[1] / q30;
-			q2 = quat[2] / q30;
-			q3 = quat[3] / q30;
-			
-			//matrix transfer
-			ea -> pitch = asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3f; 	 
-			ea -> roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3f; 
-			ea -> yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3f;
-			
-			RadRangeLimitExcess(ea -> pitch);
-			RadRangeLimitExcess(ea -> roll);
-			RadRangeLimitExcess(ea -> yaw);
+	if (dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more))
+		return 1;
+	if (sensors & INV_WXYZ_QUAT)
+	{    
+		q0 = quat[0] / q30;
+		q1 = quat[1] / q30;
+		q2 = quat[2] / q30;
+		q3 = quat[3] / q30;
+		
+		//matrix transfer
+		ea -> pitch = (float)asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3f; 	 
+		ea -> roll = (float)atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3f; 
+		ea -> yaw = (float)atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3f;
+		
+		RadRangeLimitExcess(ea -> pitch);
+		RadRangeLimitExcess(ea -> roll);
+		RadRangeLimitExcess(ea -> yaw);
+		
+		//com port test
+		__ShellHeadSymbol__;
+		if (No_Data_Receive)
+		{
+			printf("Euler-Angle: Pitch: %.2f | Roll: %.2f | Yaw: %.2f\r\n", 
+					ea -> pitch, ea -> roll, ea -> yaw);			
+			usart1WaitForDataTransfer();		
 		}
-		//calculate fatal
-		else
-			U1SD("Attitude Algorithm Method: DMP, Process Fatal\r\n");	
+		
+		return 0;
 	}
+	else
+		return 2;
 }
 
 //====================================================================================================

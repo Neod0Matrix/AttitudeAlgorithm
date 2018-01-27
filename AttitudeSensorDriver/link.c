@@ -67,10 +67,6 @@ void OLED_ScreenP4_Const (void)
 //OLED AttitudeAlgorithm数据显示
 void OLED_DisplayAA (EulerAngleStructure *ea)
 {	
-	RadRangeLimitExcess(ea -> pitch);
-	RadRangeLimitExcess(ea -> roll);
-	RadRangeLimitExcess(ea -> yaw);
-	
 	//显示Pitch角度
 	OLED_ShowString(strPos(0u), ROW1, (const u8*)"P:", Font_Size);
 	OLED_ShowNum(strPos(2u), ROW1, ea -> pitch, 3u, Font_Size);	
