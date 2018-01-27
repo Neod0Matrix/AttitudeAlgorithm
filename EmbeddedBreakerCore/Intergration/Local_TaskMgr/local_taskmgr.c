@@ -11,7 +11,7 @@
 void prio1TaskBus (void)
 {
 	OrderResponse_Handler();						//指令响应函数
-	if (pwsf != JBoot && Is_MPUDataTransfer_Finished)
+	if (GDM_Switch == GDM_Enable)
 		dmpAttitudeAlgorithm(&eas);
 }
 

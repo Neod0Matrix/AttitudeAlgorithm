@@ -347,13 +347,16 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		RadRangeLimitExcess(ea -> roll);
 		RadRangeLimitExcess(ea -> yaw);
 		
-		//com port test
-		__ShellHeadSymbol__;
-		if (No_Data_Receive)
+		if (GDM_Switch == GDM_Enable)
 		{
-			printf("Euler-Angle: Pitch: %.2f | Roll: %.2f | Yaw: %.2f\r\n", 
-					ea -> pitch, ea -> roll, ea -> yaw);			
-			usart1WaitForDataTransfer();		
+			//com port test
+			__ShellHeadSymbol__;
+			if (No_Data_Receive)
+			{
+				printf("Gyroscope Debug Mode, Euler Angle Print: [Pitch: %.2f | Roll: %.2f | Yaw: %.2f]\r\n", 
+						ea -> pitch, ea -> roll, ea -> yaw);			
+				usart1WaitForDataTransfer();		
+			}
 		}
 		
 		return 0;

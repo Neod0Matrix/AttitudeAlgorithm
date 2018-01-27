@@ -40,42 +40,31 @@
 //是否开启急停外部中断
 typedef enum {StewEXTI_Enable = 1, StewEXTI_Disable = !StewEXTI_Enable}	Stew_EXTI_Setting;
 extern Stew_EXTI_Setting			StewEXTI_Switch;
+//是否开启陀螺仪调试模式
+typedef enum {GDM_Enable = 1, GDM_Disable = !GDM_Enable} GyroDebugModeSetting;
+extern GyroDebugModeSetting			GDM_Switch;
 
 //urc开源链接编号
 typedef enum 
 {
 	urc_stew 	= 15,
+	urc_gdm		= 16,
 } AHRS_SwitchNbr;
 
 //裁去protocol.h中的定义放到这里来重新定义urc协议长度
-#define Max_Option_Value		15u
+#define Max_Option_Value		16u
 
-//协议protocol.c链接
-/*
-	电机单步调试协议
-	协议18位，除去字头字尾有15位
-	后一位表示算列类型，前5位表示行距(1位指示单位，4位指示长度
-	再后面5位表示速度，单位hz，再后一位表示模式
-	空2位
-*/
-#define SSDS					0x1D					//单步调试标识
-#define ModuleMMC_Protocol 		{DH, SSDS, DMAX, DMAX, LineUnit, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, UnlimitRun, NB, NB, NB, DT}
-#define SSD_MoNum_1st			2u						//单步调试算例编号第一位，共2位
-#define SSD_DisUnit_1st			4u						//单步调试行距单位第一位，共1位
-#define SSD_GetDis_1st			5u						//单步调试行距第一位，共4位
-#define SSD_SpFq_1st			9u						//单步调试速度第一位，共4位
-#define SSD_Mode_1st			13u						//单步调试运行模式第一位，共1位
+//裁去ui.h中定义的总切屏数到这里来重新定义
+#define ScreenPageCount			5u						
+
+void OLED_ScreenP4_Const (void);
+void OLED_DisplayAA (EulerAngleStructure *ea);
 
 //对外API接口
 extern void U1RSD_example (void);						//串口处理例程封装
 void ModuleAA_UniResConfig (void);
 void ModuleAA_URCMap (void);
 void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type);
-
-#define ScreenPageCount			5u						//OLED UI切换总页数
-
-void OLED_ScreenP4_Const (void);
-void OLED_DisplayAA (EulerAngleStructure *ea);
 
 #endif
 

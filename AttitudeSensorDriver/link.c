@@ -6,6 +6,7 @@
 //该文件写入对框架的函数调用支持
 
 Stew_EXTI_Setting			StewEXTI_Switch;
+GyroDebugModeSetting		GDM_Switch;
 
 //链接到Universal_Resource_Config函数的模块库
 void ModuleAA_UniResConfig (void)
@@ -15,12 +16,21 @@ void ModuleAA_UniResConfig (void)
 		但也有可能普通监测不够快
 	*/
 	StewEXTI_Switch 	= StewEXTI_Enable;				//StewEXTI_Enable	StewEXTI_Disable
+	
+	/*
+		陀螺仪本身是个比较复杂的器件
+		需要对它的诸多参数进行调试
+		这些调试参数在实际使用中不一定需要开启占用进程
+	*/
+	GDM_Switch			= GDM_Enable;					//GDM_Enable		GDM_Disable
 }
 
 //模块选项映射表，链接到urcMapTable_Print函数
 void ModuleAA_URCMap (void)
 {
 	printf("\r\n%02d 	Stew EXTI Setting", urc_stew);
+	usart1WaitForDataTransfer();
+	printf("\r\n%02d 	Gyro Debug Mode Setting", urc_gdm);
 	usart1WaitForDataTransfer();
 }
 
@@ -29,7 +39,8 @@ void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type)
 {
 	switch (sw_type)
 	{
-	case urc_stew: 		StewEXTI_Switch	= (Stew_EXTI_Setting)ed_status;				break;	
+	case urc_stew: 		StewEXTI_Switch	= (Stew_EXTI_Setting)ed_status;		break;	
+	case urc_gdm:		GDM_Switch 		= (GyroDebugModeSetting)ed_status;	break;	
 	}
 }
 
@@ -93,79 +104,6 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 	
 	OLED_Refresh_Gram();
 }
-
-/*
-//串口控制运动算例，对协议算例接口
-Motion_Select SingleStepDebug_linker (void)
-{
-	//两字节算列类型
-	Motion_Select SSD_MotionNumber	= (Motion_Select)(
-											USART1_RX_BUF[SSD_MoNum_1st] 		* 10u 
-										+ 	USART1_RX_BUF[SSD_MoNum_1st + 1]);
-	//一字节行距单位
-	LineRadSelect SSD_Lrsflag		= (LineRadSelect)(
-											USART1_RX_BUF[SSD_DisUnit_1st]);
-	//四字节行距长度
-	u16 SSD_GetDistance 			= (u16)(
-											USART1_RX_BUF[SSD_GetDis_1st] 		* 1000u 
-										+ 	USART1_RX_BUF[SSD_GetDis_1st + 1] 	* 100u 
-										+ 	USART1_RX_BUF[SSD_GetDis_1st + 2] 	* 10u
-										+ 	USART1_RX_BUF[SSD_GetDis_1st + 3]);
-	//四字节速度
-	u16 SSD_Speed					= (u16)(USART1_RX_BUF[SSD_SpFq_1st]			* 1000u
-										+	USART1_RX_BUF[SSD_SpFq_1st + 1] 	* 100u 
-										+ 	USART1_RX_BUF[SSD_SpFq_1st + 2] 	* 10u 
-										+ 	USART1_RX_BUF[SSD_SpFq_1st + 3]);
-	//一字节模式位
-	MotorRunMode SSD_Mrmflag		= (MotorRunMode)(USART1_RX_BUF[SSD_Mode_1st]);
-	
-	//打印标志，算例编号，圈数，急停不显示
-	if (SendDataCondition && SSD_MotionNumber != Stew_All)
-	{
-		__ShellHeadSymbol__; 
-		printf("Please Confirm Motion Parameter: ");
-		//两个flag四种情况
-		if (SSD_Lrsflag == RadUnit && SSD_Mrmflag == LimitRun)
-			printf("Motion Type: %02d | Speed: %dHz | Distance: %ddegree | Mode: LimitRun\r\n", SSD_MotionNumber, SSD_Speed, SSD_GetDistance);
-		else if (SSD_Lrsflag == RadUnit && SSD_Mrmflag == UnlimitRun)
-			printf("Motion Type: %02d | Speed: %dHz | Distance: %ddegree | Mode: UnlimitRun\r\n", SSD_MotionNumber, SSD_Speed, SSD_GetDistance);
-		else if (SSD_Lrsflag == LineUnit && SSD_Mrmflag == LimitRun)
-			printf("Motion Type: %02d | Speed: %dHz | Distance: %dmm | Mode: LimitRun\r\n", SSD_MotionNumber, SSD_Speed, SSD_GetDistance);
-		else if (SSD_Lrsflag == LineUnit && SSD_Mrmflag == UnlimitRun)
-			printf("Motion Type: %02d | Speed: %dHz | Distance: %dmm | Mode: UnlimitRun\r\n", SSD_MotionNumber, SSD_Speed, SSD_GetDistance);
-		usart1WaitForDataTransfer();		
-	}
-
-	switch (SSD_MotionNumber)				
-	{
-	//急停
-	case Stew_All: 		
-		MotorBasicDriver(&st_motorAcfg, StopRun); 
-		EMERGENCYSTOP;									//协议通信急停
-		EMERGENCYSTOP_16;										
-		break;
-	//上下行基本算例
-	case UpMove: 		
-		MotorMotionController(SSD_Speed, SSD_GetDistance, Pos_Rev, SSD_Mrmflag, SSD_Lrsflag, &st_motorAcfg); 
-		break;			
-	case DownMove: 		
-		MotorMotionController(SSD_Speed, SSD_GetDistance, Nav_Rev, SSD_Mrmflag, SSD_Lrsflag, &st_motorAcfg); 
-		break;
-	//重复性测试
-	case Repeat: 		
-		RepeatTestMotion(&st_motorAcfg); 						
-		break;
-	}
-	
-	if (SSD_MotionNumber != Stew_All)
-	{
-		__ShellHeadSymbol__; U1SD("Order Has Started to Execute\r\n");
-	}
-	order_bootflag = pcl_error;							//完成工作，协议关闭
-	
-	return SSD_MotionNumber;							//返回算例号用于其它功能
-}
-*/
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

@@ -32,12 +32,12 @@ static void RTC_NVIC_Config (void)
 //时间初值设定
 void RTC_TimeInitSetting (void)
 {
-	//初设定，断电更新
-	_start.w_year 	= 2017u;										//年
-	_start.w_month 	= 9u;											//月	
-	_start.w_date 	= 28u;											//日
-	_start.hour 	= 19u;											//时
-	_start.min 		= 05u;											//分
+	//初设定，RTC寄存器断电更新
+	_start.w_year 	= 2018u;										//年
+	_start.w_month 	= 1u;											//月	
+	_start.w_date 	= 27u;											//日
+	_start.hour 	= 18u;											//时
+	_start.min 		= 33u;											//分
 	_start.sec 		= 34u;											//秒
 	
 	//设置时间
