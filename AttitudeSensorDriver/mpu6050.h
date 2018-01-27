@@ -361,14 +361,25 @@
 #define DEFAULT_MPU_HZ  					200				//每隔5msMPU INT脚产生一个下降沿读取数据，频率200hz
 #define q30  								1073741824.0f 	//pow(2, 30)
 
-#define IO_MPU_INT							GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12)
+//判断MPU6050数据转换是否完成
+#define MPU_DataTransferFinishedINTLevel	Bit_RESET		//设置转换完成电平
+#define Is_MPUDataTransfer_Finished 		((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12) \
+											== MPU_DataTransferFinishedINTLevel)? True : False)
 
-//万向节死锁
+//角度极限变换
 #ifndef RadRangeLimitExcess
 #define RadRangeLimitExcess(axis)			axis = (axis < 0)? axis += 360 : axis;
 #endif
 
-extern float Roll, Pitch, Yaw;
+//欧拉角结构体
+typedef __packed struct 
+{
+	float pitch;							//x轴
+	float roll;								//y轴
+	float yaw;								//z轴
+} EulerAngleStructure;
+extern EulerAngleStructure eas;
+void EulerAngleStructureInit (EulerAngleStructure *ea);
 
 //MPU6050操作函数
 void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz);
@@ -380,15 +391,17 @@ uint8_t MPU6050_GetDeviceID (void);
 Bool_ClassType MPU6050_TestConnection (void);
 void MPU6050_SetI2CMasterModeEnabled (FunctionalState ctrl);
 void MPU6050_SetI2CBypassEnabled (FunctionalState ctrl);
+void MPU6050_SetDataInterrupt (void);
 void MPU6050_DeviceInit (void);
-void MPUInnerDMP_Init (void);
+void MPU6050_SetInnerDMPInit (void);
 float MPU6050_ReadTemperature (void);
 
 //解算库
+float invSqrt (float x);
 static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
-static void MPU_SelfTest (void);
-Bool_ClassType AttitudeAlgorithm (void);
+Bool_ClassType run_self_test (void);
+void dmpAttitudeAlgorithm (EulerAngleStructure *ea);
 
 #endif
 

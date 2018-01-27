@@ -7,41 +7,42 @@
 //IO总线定义
 #define GyroAPBx_RCCBus			RCC_APB2Periph_GPIOB
 #define Gyro_GPIOx				GPIOB
-#define Gyro_SCL_Pin			GPIO_Pin_10							//SCL PB10
-#define Gyro_SDA_Pin			GPIO_Pin_11							//SDA PB11
-#define IO_GYI2C_SCL    		PBout(10) //SCL
-#define IO_GYI2C_SDA_W    		PBout(11) //写SDA	 
-//#define IO_GYI2C_SDA_R   		PBin(11)  //读SDA 
-#define IO_GYI2C_SDA_R			GPIO_ReadInputDataBit(Gyro_GPIOx, Gyro_SDA_Pin)
+#define Gyro_SCL_Pin			GPIO_Pin_10								//SCL PB10
+#define Gyro_SDA_Pin			GPIO_Pin_11								//SDA PB11
+#define IO_GYI2C_SCL    		PBout(10) 								//SCL
+#define IO_GYI2C_SDA_W    		PBout(11) 								//写SDA	 
+#define IO_GYI2C_SDA_R   		PBin(11)  								//读SDA 
+//#define IO_GYI2C_SDA_R			GPIO_ReadInputDataBit(Gyro_GPIOx, Gyro_SDA_Pin)
  
-//陀螺仪IIC SDA 模式转换 
-void GyroI2C_SDAMode_Setting (i2c_SDA_RW_Switcher sta)
+//陀螺仪I2C SDA 模式转换 
+void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
 {
-	//GPIOB -> CRH &= 0XFFFF0FFF;
-	if (sta == SDA_Ws)
-	{
-		//GPIOB -> CRH |= 3 << 12;
-		ucGPIO_Config_Init (GyroAPBx_RCCBus,			
-							GPIO_Mode_Out_OD,							//数据传输开漏			
-							GPIO_Speed_50MHz,						
-							GPIORemapSettingNULL,			
-							Gyro_SDA_Pin,					
-							Gyro_GPIOx,					
-							NI,				
-							EBO_Disable);
-	}
-	else
-	{
-		//GPIOB -> CRH |= 8 << 12;
-		ucGPIO_Config_Init (GyroAPBx_RCCBus,			
-							GPIO_Mode_IN_FLOATING,						//数据浮空输入
-							GPIO_Input_Speed,						
-							GPIORemapSettingNULL,			
-							Gyro_SDA_Pin,					
-							Gyro_GPIOx,					
-							NI,				
-							EBO_Disable);
-	}
+	//寄存器写法
+	GPIOB -> CRH &= 0XFFFF0FFF;
+	GPIOB -> CRH |= (sta == SDA_Ws)? 3 << 12 : 8 << 12;					//仅兼容PB11
+	//库函数写法
+//	if (sta == SDA_Ws)
+//	{
+//		ucGPIO_Config_Init (GyroAPBx_RCCBus,			
+//							GPIO_Mode_Out_PP,							//数据传输开漏			
+//							GPIO_Speed_50MHz,						
+//							GPIORemapSettingNULL,			
+//							Gyro_SDA_Pin,					
+//							Gyro_GPIOx,					
+//							NI,				
+//							EBO_Disable);
+//	}
+//	else
+//	{
+//		ucGPIO_Config_Init (GyroAPBx_RCCBus,			
+//							GPIO_Mode_IN_FLOATING,						//数据浮空输入
+//							GPIO_Input_Speed,						
+//							GPIORemapSettingNULL,			
+//							Gyro_SDA_Pin,					
+//							Gyro_GPIOx,					
+//							NI,				
+//							EBO_Disable);
+//	}
 }	
  
 //IIC IO初始化
@@ -49,7 +50,7 @@ void invI2C_IO_Init (void)
 {			
 	//数据开漏输出
 	ucGPIO_Config_Init (GyroAPBx_RCCBus,			
-						GPIO_Mode_Out_OD,			
+						GPIO_Mode_Out_PP,			
 						GPIO_Speed_50MHz,						
 						GPIORemapSettingNULL,		
 						Gyro_SCL_Pin | Gyro_SDA_Pin,					
@@ -61,7 +62,7 @@ void invI2C_IO_Init (void)
 //起始信号
 Bool_ClassType invI2C_Start (void)
 {
-	GyroI2C_SDAMode_Setting(SDA_Ws);
+	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 1;
 	if (!IO_GYI2C_SDA_R) 
 		return False;	
@@ -81,7 +82,7 @@ Bool_ClassType invI2C_Start (void)
 //I2C停止信号	  
 void invI2C_Stop (void)
 {
-	GyroI2C_SDAMode_Setting(SDA_Ws);
+	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SCL = 0;
 	IO_GYI2C_SDA_W = 0;
  	delay_us(1);
@@ -95,7 +96,7 @@ Bool_ClassType invI2C_WaitAck (void)
 {
 	u8 ucErrTime = 0;
 	
-	GyroI2C_SDAMode_Setting(SDA_Rs);
+	GyroI2C_SDAModeTransfer(SDA_Rs);
 	IO_GYI2C_SDA_W = 1;
 	delay_us(1);	   
 	IO_GYI2C_SCL = 1; 
@@ -120,7 +121,7 @@ Bool_ClassType invI2C_WaitAck (void)
 void invI2C_ProdAck (void)
 {
 	IO_GYI2C_SCL = 0;
-	GyroI2C_SDAMode_Setting(SDA_Ws);
+	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 0;
 	delay_us(1);
 	IO_GYI2C_SCL = 1;
@@ -132,7 +133,7 @@ void invI2C_ProdAck (void)
 void invI2C_ProdNoAck (void)
 {
 	IO_GYI2C_SCL = 0;
-	GyroI2C_SDAMode_Setting(SDA_Ws);
+	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 1;
 	delay_us(1);
 	IO_GYI2C_SCL = 1;
@@ -145,7 +146,7 @@ void invI2C_SendByte (u8 txd)
 {                        
     u8 t;   
 	
-	GyroI2C_SDAMode_Setting(SDA_Ws);
+	GyroI2C_SDAModeTransfer(SDA_Ws);
     IO_GYI2C_SCL = 0;
     for (t = 0; t < 8; t++)
     {      
@@ -164,7 +165,7 @@ u8 invI2C_ReadByte (Bool_ClassType ack)
 {
 	u8 i, receive = 0;
 	
-	GyroI2C_SDAMode_Setting(SDA_Rs);
+	GyroI2C_SDAModeTransfer(SDA_Rs);
     for (i = 0; i < 8; i++ )
 	{
         IO_GYI2C_SCL = 0;
@@ -174,7 +175,7 @@ u8 invI2C_ReadByte (Bool_ClassType ack)
         if (IO_GYI2C_SDA_R)
 			receive++;   
 		delay_us(2); 
-    }					 
+    }			
     if (ack)
         invI2C_ProdAck(); 
     else
@@ -231,15 +232,10 @@ Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
     invI2C_Start();
     invI2C_SendByte((addr << 1) + 1);
     invI2C_WaitAck();
-    while (len) 
-	{
-        if (len == 1)
-            *buf = invI2C_ReadByte(False);
-        else
-            *buf = invI2C_ReadByte(True);
-        buf++;
-        len--;
-    }
+	//read total register
+    do	
+		*buf = invI2C_ReadByte((len == 1)? False : True), buf++;
+	while (len--);
     invI2C_Stop();
 	
     return False;
@@ -281,12 +277,7 @@ u8 invI2C_ReadDevLenBytes (u8 dev, u8 reg, u8 length, u8 *data)
 	invI2C_SendByte(dev + 1); 
 	invI2C_WaitAck();
     for (count = 0; count < length; count++)
-	{ 
-		if (count != length - 1)
-			data[count] = invI2C_ReadByte(True);  
-		else  
-			data[count] = invI2C_ReadByte(False);	 
-	}
+		data[count] = invI2C_ReadByte((count != length - 1)? True : False);
     invI2C_Stop();
 	
     return count;

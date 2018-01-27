@@ -2372,7 +2372,7 @@ int mpu_load_firmware(unsigned short length, const unsigned char *firmware,
 
 /**
  *  @brief      Enable/disable DMP support.
- *  @param[in]  enable  1 to turn on the DMP.
+ *  @param[in]  enable 1 to turn on the DMP.
  *  @return     0 if successful.
  */
 int mpu_set_dmp_state(unsigned char enable)

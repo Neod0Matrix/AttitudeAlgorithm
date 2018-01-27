@@ -65,29 +65,29 @@ void OLED_ScreenP4_Const (void)
 }
 
 //OLED AttitudeAlgorithm数据显示
-void OLED_DisplayAA (void)
+void OLED_DisplayAA (EulerAngleStructure *ea)
 {	
-	RadRangeLimitExcess(Roll);
-	RadRangeLimitExcess(Pitch);
-	RadRangeLimitExcess(Yaw);
-		
-	//显示Roll角度
-	OLED_ShowString(strPos(0u), ROW1, (const u8*)"R:", Font_Size);
-	OLED_ShowNum(strPos(2u), ROW1, Roll, 3u, Font_Size);	
-	OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(6u), ROW1, ((u16)((Roll) * 10) % 10), 1u, Font_Size);
+	RadRangeLimitExcess(ea -> pitch);
+	RadRangeLimitExcess(ea -> roll);
+	RadRangeLimitExcess(ea -> yaw);
 	
 	//显示Pitch角度
-	OLED_ShowString(strPos(8u), ROW1, (const u8*)"P:", Font_Size);
-	OLED_ShowNum(strPos(10u), ROW1, Pitch, 3u, Font_Size);	
+	OLED_ShowString(strPos(0u), ROW1, (const u8*)"P:", Font_Size);
+	OLED_ShowNum(strPos(2u), ROW1, ea -> pitch, 3u, Font_Size);	
+	OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
+	OLED_ShowNum(strPos(6u), ROW1, ((u16)(ea -> pitch * 10) % 10), 1u, Font_Size);
+	
+	//显示Roll角度
+	OLED_ShowString(strPos(8u), ROW1, (const u8*)"R:", Font_Size);
+	OLED_ShowNum(strPos(10u), ROW1, ea -> roll, 3u, Font_Size);	
 	OLED_ShowString(strPos(13u), ROW1, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(14u), ROW1, ((u16)((Pitch + 360) * 10) % 10), 1u, Font_Size);
+	OLED_ShowNum(strPos(14u), ROW1, ((u16)(ea -> roll * 10) % 10), 1u, Font_Size);
 	
 	//显示Yaw角度
 	OLED_ShowString(strPos(0u), ROW2, (const u8*)"Y:", Font_Size);
-	OLED_ShowNum(strPos(2u), ROW2, Yaw, 3u, Font_Size);	
+	OLED_ShowNum(strPos(2u), ROW2, ea -> yaw, 3u, Font_Size);	
 	OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(6u), ROW2, ((u16)((Yaw) * 10) % 10), 1u, Font_Size);
+	OLED_ShowNum(strPos(6u), ROW2, ((u16)(ea -> yaw * 10) % 10), 1u, Font_Size);
 	
 	//显示MPU芯片温度
 	OLED_ShowString(strPos(8u), ROW2, (const u8*)"T:", Font_Size);

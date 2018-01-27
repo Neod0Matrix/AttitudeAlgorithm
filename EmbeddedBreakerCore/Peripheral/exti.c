@@ -45,10 +45,10 @@ void EXTI_Config_Init (void)
 	if (StewEXTI_Switch == StewEXTI_Enable)
 	{
 		//KEY0 PC5
-		ucGPIO_Config_Init (RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO,			
+		ucGPIO_Config_Init (RCC_APB2Periph_GPIOC,			
 							GPIO_Mode_IPU,					
-							GPIO_Input_Speed,									//无效参数						
-							GPIO_Remap_SWJ_JTAGDisable,							//关闭jtag，启用swd
+							GPIO_Input_Speed,						//无效参数						
+							GPIORemapSettingNULL,							
 							GPIO_Pin_5,					
 							GPIOC,					
 							NI,				
@@ -61,33 +61,33 @@ void EXTI_Config_Init (void)
 							EXTI_Trigger_Rising, 
 							EXTI9_5_IRQn, 
 							0x01, 
-							0x01);
+							0x03);
 	}
 	
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
-	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO,			
-						GPIO_Mode_IPU,						//一般设置成上拉输入					
-						GPIO_Input_Speed,					//无效参数						
-						GPIO_Remap_SWJ_JTAGDisable,							
+	//PB12 MPU6050数据读取中断，低电平有效
+	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB,			
+						GPIO_Mode_IPU,								//一般设置成上拉输入					
+						GPIO_Input_Speed,							//无效参数						
+						GPIORemapSettingNULL,							
 						GPIO_Pin_12,					
 						GPIOB,					
-						IHL,								//NI			
+						IHL,										//NI			
 						EBO_Disable);
 	ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
 						GPIO_PinSource12, 
 						MPU_INT_EXTI_Line, 
 						EXTI_Mode_Interrupt, 
-						//设置触发沿属性
-#if MPUINT_Level == lvl
-						EXTI_Trigger_Falling, 
-#elif MPUINT_Level == hvl
+#if MPU_DataTransferFinishedINTLevel == Bit_RESET
+						EXTI_Trigger_Falling, 						
+#elif MPU_DataTransferFinishedINTLevel == Bit_SET
 						EXTI_Trigger_Rising,
 #endif
 						EXTI15_10_IRQn, 
-						0x02, 
-						0x02);
+						0x03, 
+						0x01);
 }
 
 //STEW--PB8
@@ -130,11 +130,9 @@ void EXTI15_10_IRQHandler (void)
 		必须按照时序严格读取，否则会不间断返回fatal
 		底层初始化完成开始读取
 	*/
-	if (EXTI_GetITStatus(MPU_INT_EXTI_Line) != RESET)
-	{
-		EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  				//清除EXTI线路挂起位
-		AttitudeAlgorithm(); 										//姿态解算
-	}
+	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
+	if (pwsf != JBoot)
+		dmpAttitudeAlgorithm(&eas);
 		
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 

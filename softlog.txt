@@ -5,6 +5,6 @@ v0p1_LTE:
 	完善对框架链接库
 	修复I2C库 bug
 v0p2_LTE:
-	
+	修复若干bug
 v0p3_LTE:
 	

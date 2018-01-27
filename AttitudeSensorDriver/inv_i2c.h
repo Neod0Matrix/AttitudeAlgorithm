@@ -12,7 +12,7 @@ Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf);
 
 //I2C所有操作函数
 void invI2C_IO_Init (void);
-void GyroI2C_SDAMode_Setting (i2c_SDA_RW_Switcher sta);
+void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta);
 Bool_ClassType invI2C_Start (void);
 void invI2C_Stop (void);
 Bool_ClassType invI2C_WaitAck (void);

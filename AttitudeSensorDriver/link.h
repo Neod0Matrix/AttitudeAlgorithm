@@ -25,7 +25,7 @@
 //工程声明
 #define _Project_Type_			"SDP"					//工程类型
 #define _Frame_Name_			"EmbeddedBreakerCore"	//架构名称
-#define _Code_Version_ 			"OS_v0p1_LTE"			//长期演进版
+#define _Code_Version_ 			"OS_v0p2_LTE"			//长期演进版
 #define _Laboratory_			"T.WKVER"				//实验室
 #define _Logo_					"Absolute Liberal"		//logo
 #define _Developer_				"Neod Anderjon"			//开发者
@@ -75,7 +75,7 @@ void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type);
 #define ScreenPageCount			5u						//OLED UI切换总页数
 
 void OLED_ScreenP4_Const (void);
-void OLED_DisplayAA (void);
+void OLED_DisplayAA (EulerAngleStructure *ea);
 
 #endif
 
