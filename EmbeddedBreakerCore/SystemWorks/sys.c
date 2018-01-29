@@ -46,17 +46,17 @@ void NVIC_Configuration (void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//默认使用分组2
 }
 
-//RCC时钟配置，放在外设RCC时钟初始化之前
-void RCC_Configuration (void)
+/*
+	RCC时钟配置，放在外设RCC时钟初始化之前
+	V3.0版本固件库之前是必备的，V3.0之后使用缺省配置
+*/
+void RCC_Configuration (uint32_t pll)
 {
-    ErrorStatus HSEStartUpStatus;
-	
     RCC_DeInit();              						//RCC寄存器恢复初始化值
-    RCC_HSEConfig(RCC_HSE_ON); 						//使能外部高速晶振
-    HSEStartUpStatus = RCC_WaitForHSEStartUp(); 	//等待外部高速晶振使能完成
+    RCC_HSEConfig(RCC_HSE_ON); 						//使能外部高速晶振HSE
 	
 	//如果外部晶振启动成功，则进行下一步操作
-    if (HSEStartUpStatus == SUCCESS)
+    if (RCC_WaitForHSEStartUp() == SUCCESS)
     {
 		/*
 			AHB主要负责外部存储器时钟
@@ -80,12 +80,27 @@ void RCC_Configuration (void)
 			   48-72MHz时，取Latency=2
 		*/
         FLASH_SetLatency(FLASH_Latency_2); 			//flash 2延时周期
-        //选择FLASH预取指缓存的模式
         FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);//预取指缓存使能
 		
-		//设置PLL时钟源及倍频系数，PLL的输入时钟=HSE时钟频率x倍频系数
-        RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);//设置时钟倍频系数(8Mhz x 9 = 72Mhz)
-        
+		//设置PLL时钟源及倍频系数，PLL的输入时钟=HSE时钟频率x倍频系数(2-16)
+		switch (pll)
+		{
+		case 2: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_2); break;
+		case 3: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_3); break;
+		case 4: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_4); break;
+		case 5: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_5); break;
+		case 6: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_6); break;
+		case 7: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_7); break;
+		case 8: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_8); break;
+		case 9: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9); break;
+		case 10: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_10); break;
+		case 11: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_11); break;
+		case 12: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_12); break;
+		case 13: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_13); break;
+		case 14: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_14); break;
+		case 15: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_15); break;
+		case 16: RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_16); break;
+		}
         RCC_PLLCmd(ENABLE);							//使能PLL
 		
         //等待PLL准备完成

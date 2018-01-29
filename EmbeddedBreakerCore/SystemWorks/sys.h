@@ -62,23 +62,13 @@
 #define PGout(n)   				BIT_ADDR(GPIOG_ODR_Addr, n) //输出 
 #define PGin(n)    				BIT_ADDR(GPIOG_IDR_Addr, n) //输入
 
-//Ex_NVIC_Config专用定义
-#define GPIO_A 					0u
-#define GPIO_B 					1u
-#define GPIO_C 					2u
-#define GPIO_D 					3u
-#define GPIO_E 					4u
-#define GPIO_F 					5u
-#define GPIO_G 					6u
-
-#define FTIR   					1u  						//下降沿触发
-#define RTIR   					2u 							//上升沿触发
-
 //系统时钟源设置
-typedef enum {	HSIclk = (uint8_t)0x00, 
-				HSEclk = (uint8_t)0x04, 
-				PLLclk = (uint8_t)0x08} 
-SystemClock_Setting;
+typedef enum 
+{	
+	HSIclk = (uint8_t)0x00, 
+	HSEclk = (uint8_t)0x04, 
+	PLLclk = (uint8_t)0x08,
+} SystemClock_Setting;
 
 //以下为汇编函数
 void WFI_SET (void);										//执行WFI指令
@@ -89,7 +79,7 @@ void MSR_MSP (u32 addr);									//设置堆栈地址
 //系统时钟优先级功能设置
 void Sys_Soft_Reset (void);									//系统软件复位
 void NVIC_Configuration (void);								//NVIC配置
-void RCC_Configuration (void);								//RCC配置
+void RCC_Configuration (uint32_t pll);						//RCC配置
 
 #endif
 
