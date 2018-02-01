@@ -4,7 +4,20 @@
 //====================================================================================================
 //MPU6050基础驱动
 
+GyroAccelStructure gas;
 EulerAngleStructure eas;
+float MPU_GlobalTemp;
+
+//陀螺仪数据结构体初始化
+void GyroAccelStructureInit (GyroAccelStructure *ga)
+{
+	ga -> gx = 0;
+	ga -> gy = 0;
+	ga -> gz = 0;
+	ga -> ax = 0;
+	ga -> ay = 0;
+	ga -> az = 0;
+}
 
 //欧拉角结构体初始化
 void EulerAngleStructureInit (EulerAngleStructure *ea)
@@ -47,15 +60,16 @@ void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int1
 //MPU自检测试
 Bool_ClassType run_self_test (void)
 {
-    int result = 0;
+    int result;
+	//char test_packet[4] = {0};
     long gyro[3], accel[3];
-	float sens = 0.f;
-	u16 accel_sens = 0;
 	
     result = mpu_run_self_test(gyro, accel);
-    if (result == 0x0) 							//MPU6500: 0x7
+    if (result == 0x3) 							//MPU6500: 0x7
 	{
 		//Test passed. We can trust the gyro data here, so let's push it down to the DMP.
+		float sens;
+		u16 accel_sens;
         mpu_get_gyro_sens(&sens);
         gyro[0] = (long)(gyro[0] * sens);
         gyro[1] = (long)(gyro[1] * sens);
@@ -74,7 +88,7 @@ Bool_ClassType run_self_test (void)
 }
 
 //方向矩阵辅助转换函数
-static u16 inv_row_2_scale (const signed char *row)
+u16 inv_row_2_scale (const signed char *row)
 {
     u16 b;
 
@@ -114,10 +128,18 @@ float invSqrt (float x)
 	return y;
 }
 
-//方向矩阵转换标量
-static u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
+//陀螺仪方向控制
+u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
 {
     u16 scalar;
+	/*
+       XYZ  010_001_000 Identity Matrix
+       XZY  001_010_000
+       YXZ  010_000_001
+       YZX  000_010_001
+       ZXY  001_000_010
+       ZYX  000_001_010
+     */
 	
     scalar = inv_row_2_scale(mtx);
     scalar |= inv_row_2_scale(mtx + 3) << 3;
@@ -285,20 +307,102 @@ void MPU6050_BeforeDelay (void)
 		for (j = 0; j < 1000; j++);
 }
 
+//设置MPU6050的数字低通滤波器，lpf:数字低通滤波频率(Hz)
+u8 MPU6050_SetDigitalLowFilter (u16 lpf)
+{
+	u8 data = 0;
+	
+	if (lpf >= 188)
+		data = 1;
+	else if (lpf >= 98)
+		data = 2;
+	else if (lpf >= 42)
+		data = 3;
+	else if (lpf >= 20)
+		data = 4;
+	else if (lpf >= 10)
+		data = 5;
+	else 
+		data = 6;
+	
+	//设置数字低通滤波器  
+	return invI2C_WriteAByte(devAddr, MPU6050_RA_CONFIG, data);
+}
+
+//设置MPU6050的采样率(假定Fs=1KHz)，rate:4~1000(Hz)
+u8 MPU6050_SetSampleRate (u16 rate)
+{
+	u8 data;
+	
+	if (rate > 1000)
+		rate = 1000;
+	if (rate < 4) rate = 4;
+	data = 1000 / rate - 1;
+	//设置数字低通滤波器
+	data = invI2C_WriteAByte(devAddr, MPU6050_RA_SMPLRT_DIV, data);
+	
+	//自动设置LPF为采样率的一半
+ 	return MPU6050_SetDigitalLowFilter(rate / 2);	
+}
+
 //初始化MPU6050设备
 void MPU6050_DeviceInit (void) 
 {
+	GyroAccelStructureInit(&gas);
 	EulerAngleStructureInit(&eas);
-	invI2C_IO_Init();										//I2C接口初始化
-	MPU6050_BeforeDelay();									//初始化延时
-    MPU6050_SetClockSource(MPU6050_CLOCK_PLL_XGYRO); 		//设置时钟
-    MPU6050_SetFullScaleGyroRange(MPU6050_GYRO_FS_2000);	//陀螺仪最大量程 +-1000度每秒
-    MPU6050_SetFullScaleAccelRange(MPU6050_ACCEL_FS_2);		//加速度度最大量程 +-2G
-	MPU6050_SetSleepEnabled(DISABLE); 						//取消睡眠状态
-	MPU6050_SetI2CMasterModeEnabled(DISABLE);	 			//不让MPU6050控制AUXI2C
-	MPU6050_SetI2CBypassEnabled(DISABLE);	 				//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
-	MPU6050_SetInnerDMPInit();								//内置DMP初始化
-	MPU6050_SetDataInterrupt();								//设置数据中断模式
+	invI2C_IO_Init();											//I2C接口初始化
+//	MPU6050_BeforeDelay();										//初始化延时
+//    MPU6050_SetClockSource(MPU6050_CLOCK_PLL_XGYRO); 			//设置时钟
+//    MPU6050_SetFullScaleGyroRange(MPU6050_GYRO_FS_2000);		//陀螺仪最大量程 +-1000度每秒
+//    MPU6050_SetFullScaleAccelRange(MPU6050_ACCEL_FS_2);		//加速度度最大量程 +-2G
+//	MPU6050_SetSleepEnabled(DISABLE); 							//取消睡眠状态
+//	MPU6050_SetI2CMasterModeEnabled(DISABLE);	 				//不让MPU6050控制AUXI2C
+//	MPU6050_SetI2CBypassEnabled(DISABLE);	 					//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
+	
+	
+	invI2C_WriteAByte(devAddr, MPU6050_RA_PWR_MGMT_1, 0x80);
+	delay_ms(100);
+	invI2C_WriteAByte(devAddr, MPU6050_RA_PWR_MGMT_1, 0x00);	//唤醒MPU6050 
+	invI2C_WriteAByte(devAddr, MPU6050_RA_GYRO_CONFIG, 3 << 3);	//陀螺仪传感器,±2000dps
+	invI2C_WriteAByte(devAddr, MPU6050_RA_ACCEL_CONFIG, 0 << 3);//加速度传感器,±2g
+	MPU6050_SetSampleRate(DEFAULT_MPU_HZ);						//设置采样率
+	invI2C_WriteAByte(devAddr, MPU6050_RA_INT_ENABLE, 0x00);	//关闭所有中断
+	invI2C_WriteAByte(devAddr, MPU6050_RA_USER_CTRL, 0x00);		//I2C主模式关闭
+	invI2C_WriteAByte(devAddr, MPU6050_RA_FIFO_EN, 0x00);		//关闭FIFO
+	invI2C_WriteAByte(devAddr, MPU6050_RA_INT_PIN_CFG, 0x80);	//INT引脚低电平有效
+	//检测器件ID
+	if (MPU6050_TestConnection())
+	{
+		invI2C_WriteAByte(devAddr, MPU6050_RA_PWR_MGMT_1, 0x01);//设置CLKSEL,PLL X轴为参考
+		invI2C_WriteAByte(devAddr, MPU6050_RA_PWR_MGMT_2, 0x00);//加速度与陀螺仪都工作
+		MPU6050_SetSampleRate(DEFAULT_MPU_HZ);
+	}
+	MPU6050_SetInnerDMPInit();									//内置DMP初始化
+//	MPU6050_SetDataInterrupt();									//设置数据中断模式
+}
+
+//MPU获取陀螺仪加速度计数据
+void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
+{
+    u8 i, buf[6] = {0};  
+	
+	//读陀螺仪
+	if (!i2cRead(devAddr, MPU6050_RA_GYRO_XOUT_H, 6, buf))
+	{
+		ga -> gx = ((u16)buf[0] << 8) | buf[1];  
+		ga -> gy = ((u16)buf[2] << 8) | buf[3];  
+		ga -> gz = ((u16)buf[4] << 8) | buf[5];
+	} 	
+	//清除缓存
+	for (i = 0; i < 6; i++)
+		buf[i] = 0;
+	//读加速度
+	if (!i2cRead(devAddr, MPU6050_RA_ACCEL_XOUT_H, 6, buf))
+	{
+		ga -> ax = ((u16)buf[0] << 8) | buf[1];  
+		ga -> ay = ((u16)buf[2] << 8) | buf[3];  
+		ga -> az = ((u16)buf[4] << 8) | buf[5];
+	} 
 }
 
 //读取MPU6050内置温度传感器数据
@@ -334,6 +438,16 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		__ShellHeadSymbol__; U1SD("Gyroscope Read DMP Fatal\r\n");
 		return 1;
 	}
+	/* Gyro and accel data are written to the FIFO by the DMP in chip frame and hardware units.
+	 * This behavior is convenient because it keeps the gyro and accel outputs of dmp_read_fifo and mpu_read_fifo consistent.
+	**/
+	/*if (sensors & INV_XYZ_GYRO )
+		send_packet(PACKET_TYPE_GYRO, gyro);
+	if (sensors & INV_XYZ_ACCEL)
+		send_packet(PACKET_TYPE_ACCEL, accel); */
+	/* Unlike gyro and accel, quaternions are written to the FIFO in the body frame, q30.
+	 * The orientation is set by the scalar passed to dmp_set_orientation during initialization. 
+	**/
 	if (sensors & INV_WXYZ_QUAT)
 	{    
 		q0 = quat[0] / q30;
@@ -365,6 +479,16 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	{
 		__ShellHeadSymbol__; U1SD("Gyroscope DMP Algorithm Fatal\r\n");
 		return 2;
+	}
+}
+
+//MPU执行的实时任务
+void MPUDevice_RTTask (void)
+{
+	if (!dmpAttitudeAlgorithm(&eas))
+	{
+		MPU6050_GetGyroAccelOriginData(&gas);
+		MPU_GlobalTemp = MPU6050_ReadTemperature();
 	}
 }
 

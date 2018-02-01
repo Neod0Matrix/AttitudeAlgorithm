@@ -130,7 +130,7 @@ void EXTI15_10_IRQHandler (void)
 	*/
 	if (pwsf != JBoot && EXTI_GetITStatus(MPU_INT_EXTI_Line) != RESET)
 	{
-		dmpAttitudeAlgorithm(&eas);
+		
 	}
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	

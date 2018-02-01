@@ -371,6 +371,19 @@
 #define RadRangeLimitExcess(axis)			axis = (axis < 0)? axis += 360 : axis;
 #endif
 
+//陀螺仪加速度计结构体
+typedef __packed struct 
+{
+	short gx;
+	short gy;
+	short gz;
+	short ax;
+	short ay;
+	short az;
+} GyroAccelStructure;
+extern GyroAccelStructure gas;
+void GyroAccelStructureInit (GyroAccelStructure *ga);
+
 //欧拉角结构体
 typedef __packed struct 
 {
@@ -380,6 +393,8 @@ typedef __packed struct
 } EulerAngleStructure;
 extern EulerAngleStructure eas;
 void EulerAngleStructureInit (EulerAngleStructure *ea);
+
+extern float MPU_GlobalTemp;
 
 //MPU6050操作函数
 void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz);
@@ -396,6 +411,9 @@ void MPU6050_DeviceInit (void);
 void MPU6050_BeforeDelay (void);
 void MPU6050_SetInnerDMPInit (void);
 float MPU6050_ReadTemperature (void);
+u8 MPU6050_SetDigitalLowFilter (u16 lpf);
+u8 MPU6050_SetSampleRate (u16 rate);
+void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga);
 
 //解算库
 float invSqrt (float x);
@@ -403,6 +421,7 @@ static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
 Bool_ClassType run_self_test (void);
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea);
+void MPUDevice_RTTask (void);
 
 #endif
 

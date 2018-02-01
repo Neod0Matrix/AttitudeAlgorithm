@@ -11,6 +11,7 @@
 void prio1TaskBus (void)
 {
 	OrderResponse_Handler();						//指令响应函数
+	MPUDevice_RTTask();								//陀螺仪任务		
 }
 
 void prio2TaskBus (void)

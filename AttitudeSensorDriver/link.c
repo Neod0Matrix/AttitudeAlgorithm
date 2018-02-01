@@ -87,9 +87,9 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 	
 	//显示MPU芯片温度
 	OLED_ShowString(strPos(8u), ROW2, (const u8*)"T:", Font_Size);
-	OLED_ShowNum(strPos(10u), ROW2, MPU6050_ReadTemperature(), 3u, Font_Size);	
+	OLED_ShowNum(strPos(10u), ROW2, MPU_GlobalTemp, 3u, Font_Size);	
 	OLED_ShowString(strPos(13u), ROW2, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(14u), ROW2, ((u16)(MPU6050_ReadTemperature() * 10) % 10), 1u, Font_Size);
+	OLED_ShowNum(strPos(14u), ROW2, ((u16)(MPU_GlobalTemp * 10) % 10), 1u, Font_Size);
 	
 	OLED_Refresh_Gram();
 }

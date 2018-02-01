@@ -14,6 +14,12 @@
 #define IO_GYI2C_SDA_R   		PBin(11)  								//读SDA 
 //#define IO_GYI2C_SDA_R			GPIO_ReadInputDataBit(Gyro_GPIOx, Gyro_SDA_Pin)
  
+//MPU使用delay函数
+void mpu_delay_us (void)
+{
+	delay_us(2);
+}
+
 //陀螺仪I2C SDA 模式转换 
 void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
 {
@@ -48,14 +54,13 @@ void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
 //IIC IO初始化
 void invI2C_IO_Init (void)
 {			
-	//数据开漏输出
 	ucGPIO_Config_Init (GyroAPBx_RCCBus,			
 						GPIO_Mode_Out_PP,			
 						GPIO_Speed_50MHz,						
 						GPIORemapSettingNULL,		
 						Gyro_SCL_Pin | Gyro_SDA_Pin,					
 						Gyro_GPIOx,				
-						IHL,				
+						IHL,							//初始拉高	
 						EBO_Disable);
 }
 
@@ -64,16 +69,17 @@ Bool_ClassType invI2C_Start (void)
 {
 	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 1;
+	
 	if (!IO_GYI2C_SDA_R) 
 		return False;	
 	
 	IO_GYI2C_SCL = 1;
-	delay_us(1);
+	mpu_delay_us();
  	IO_GYI2C_SDA_W = 0;
 	if (IO_GYI2C_SDA_R) 
 		return False;
 	
-	delay_us(1);
+	mpu_delay_us();
 	IO_GYI2C_SCL = 0;
 	
 	return True;
@@ -85,10 +91,10 @@ void invI2C_Stop (void)
 	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SCL = 0;
 	IO_GYI2C_SDA_W = 0;
- 	delay_us(1);
+	mpu_delay_us();
 	IO_GYI2C_SCL = 1; 
 	IO_GYI2C_SDA_W = 1;
-	delay_us(1);							   	
+	mpu_delay_us();					   	
 }
 
 //I2C等待应答信号
@@ -98,19 +104,19 @@ Bool_ClassType invI2C_WaitAck (void)
 	
 	GyroI2C_SDAModeTransfer(SDA_Rs);
 	IO_GYI2C_SDA_W = 1;
-	delay_us(1);	   
+	mpu_delay_us();   
 	IO_GYI2C_SCL = 1; 
-	delay_us(1);	 
+	mpu_delay_us();
 	while (IO_GYI2C_SDA_R)
 	{
 		ucErrTime++;
 		//等待超时，读取失败
-		if (ucErrTime > 50)
+		if (ucErrTime > 250)
 		{
 			invI2C_Stop();
 			return False;
 		}
-		delay_us(1);
+		//delay_us(1);
 	}
 	IO_GYI2C_SCL = 0;
     
@@ -123,9 +129,9 @@ void invI2C_ProdAck (void)
 	IO_GYI2C_SCL = 0;
 	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 0;
-	delay_us(1);
+	mpu_delay_us();
 	IO_GYI2C_SCL = 1;
-	delay_us(1);
+	mpu_delay_us();
 	IO_GYI2C_SCL = 0;
 }
 	
@@ -135,9 +141,9 @@ void invI2C_ProdNoAck (void)
 	IO_GYI2C_SCL = 0;
 	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 1;
-	delay_us(1);
+	mpu_delay_us();
 	IO_GYI2C_SCL = 1;
-	delay_us(1);
+	mpu_delay_us();
 	IO_GYI2C_SCL = 0;
 }
 
@@ -154,9 +160,9 @@ void invI2C_SendByte (u8 txd)
         txd <<= 1; 	  
 		delay_us(1);   
 		IO_GYI2C_SCL = 1;
-		delay_us(1); 
+		mpu_delay_us();
 		IO_GYI2C_SCL = 0;
-		delay_us(1);
+		mpu_delay_us();
     }	 
 } 	 
 
@@ -169,7 +175,7 @@ u8 invI2C_ReadByte (Bool_ClassType ack)
     for (i = 0; i < 8; i++ )
 	{
         IO_GYI2C_SCL = 0;
-        delay_us(2);
+        mpu_delay_us();
 		IO_GYI2C_SCL = 1;
         receive <<= 1;
         if (IO_GYI2C_SDA_R)
@@ -192,7 +198,8 @@ Bool_ClassType i2cWrite (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
     if (!invI2C_Start())
         return True;
 	
-    invI2C_SendByte(addr << 1);
+    //invI2C_SendByte(addr << 1);
+	invI2C_SendByte((addr << 1) | 0);	//发送器件地址+写命令
     if (!invI2C_WaitAck()) 
 	{
         invI2C_Stop();
@@ -215,13 +222,38 @@ Bool_ClassType i2cWrite (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
     return False;
 }
 
+//I2C写一个字节
+Bool_ClassType invI2C_WriteAByte (u8 dev, u8 reg, u8 data)
+{
+	if (!invI2C_Start())
+        return True;
+	invI2C_SendByte((dev << 1) | 0);
+	if (!invI2C_WaitAck()) 
+	{
+        invI2C_Stop();
+        return True;
+    }
+	invI2C_SendByte(reg);
+	invI2C_WaitAck();
+	invI2C_SendByte(data);
+	if (!invI2C_WaitAck()) 
+	{
+        invI2C_Stop();
+        return True;
+    }
+	invI2C_Stop();
+	
+    return False;
+}
+
 //DMP库调用I2C读函数
 Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 {	
     if (!invI2C_Start())
         return True;
 	
-	invI2C_SendByte(addr << 1);
+	//invI2C_SendByte(addr << 1);
+	invI2C_SendByte((addr << 1) | 0);
     if (!invI2C_WaitAck()) 
 	{
         invI2C_Stop();
@@ -230,7 +262,8 @@ Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 	invI2C_SendByte(reg);
 	invI2C_WaitAck();
     invI2C_Start();
-    invI2C_SendByte((addr << 1) + 1);
+    //invI2C_SendByte((addr << 1) + 1);
+	invI2C_SendByte((addr << 1) | 1);
     invI2C_WaitAck();
 	//read total register
     do	
@@ -247,15 +280,17 @@ u8 invI2C_ReadDevByte (u8 dev, u8 addr)
 	u8 res = 0;
 	
 	invI2C_Start();	
-	invI2C_SendByte(dev);	   
-	res++;
+	//invI2C_SendByte(dev);	   
+	invI2C_SendByte((dev << 1) | 0);	  
+	//res++;
 	invI2C_WaitAck();
 	invI2C_SendByte(addr); 
-	res++; 
+	//res++; 
 	invI2C_WaitAck();	  
 	invI2C_Start();
-	invI2C_SendByte(dev + 1); 
-	res++;        
+	//invI2C_SendByte(dev + 1); 
+	invI2C_SendByte((dev << 1) | 1);	  
+	//res++;        
 	invI2C_WaitAck();
 	res = invI2C_ReadByte(False);	   
     invI2C_Stop();
