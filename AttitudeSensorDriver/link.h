@@ -15,6 +15,8 @@
 #include "dmpmap.h"
 #include "inv_mpu.h"
 #include "filter.h"
+#include <stdint.h>
+#include <string.h>
 
 //MCU资源
 #define _MCU_Model_				"STM32F103RET6"			//主控芯片型号

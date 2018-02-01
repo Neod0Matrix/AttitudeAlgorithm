@@ -10,8 +10,7 @@
 
 void prio1TaskBus (void)
 {
-	OrderResponse_Handler();						//指令响应函数
-	MPUDevice_RTTask();								//陀螺仪任务		
+	OrderResponse_Handler();						//指令响应函数	
 }
 
 void prio2TaskBus (void)
@@ -27,6 +26,10 @@ void prio3TaskBus (void)
 {
 	MCU_Temperature_Detector();						//温度监测
 	UIScreen_DisplayHandler();						//UI显示器
+	/*
+		@EmbeddedBreakerCore Extern API Insert
+	*/
+	MPU_GlobalTemp = MPU6050_ReadTemperature();		//MPU温度读取
 }
 
 void prio4TaskBus (void)

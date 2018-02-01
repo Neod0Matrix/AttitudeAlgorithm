@@ -4,6 +4,12 @@
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
 //====================================================================================================
+/*
+ $License:
+    Copyright (C) 2011-2012 InvenSense Corporation, All Rights Reserved.
+    See included License.txt for License information.
+ $
+ */
 /**
  *  @addtogroup  DRIVERS Sensor Driver Layer
  *  @brief       Hardware drivers to communicate with sensors via I2C.
@@ -32,8 +38,8 @@
 #define ANDROID_ORIENT_REVERSE_PORTRAIT     (0x02)
 #define ANDROID_ORIENT_REVERSE_LANDSCAPE    (0x03)
 
-#define DMP_INT_GESTURE     		(0x01)
-#define DMP_INT_CONTINUOUS  		(0x02)
+#define DMP_INT_GESTURE     (0x01)
+#define DMP_INT_CONTINUOUS  (0x02)
 
 #define DMP_FEATURE_TAP             (0x001)
 #define DMP_FEATURE_ANDROID_ORIENT  (0x002)
@@ -45,7 +51,7 @@
 #define DMP_FEATURE_SEND_RAW_GYRO   (0x080)
 #define DMP_FEATURE_SEND_CAL_GYRO   (0x100)
 
-#define INV_WXYZ_QUAT       		(0x100)
+#define INV_WXYZ_QUAT       (0x100)
 
 /* Set up functions. */
 int dmp_load_motion_driver_firmware(void);

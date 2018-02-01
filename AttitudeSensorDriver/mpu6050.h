@@ -358,8 +358,8 @@
 #define MPU6050_WHO_AM_I_BIT        		6
 #define MPU6050_WHO_AM_I_LENGTH     		6
 
-#define DEFAULT_MPU_HZ  					200				//每隔5msMPU INT脚产生一个下降沿读取数据，频率200hz
-#define q30  								1073741824.0f 	//pow(2, 30)
+#define DEFAULT_MPU_HZ  					100				//解析频率
+#define q30  								1073741824.0f 	//内部放大pow(2, 30)倍，输出时需要缩小
 
 //判断MPU6050数据转换是否完成
 #define MPU_DataTransferFinishedINTLevel	Bit_RESET		//设置转换完成电平
@@ -397,22 +397,11 @@ void EulerAngleStructureInit (EulerAngleStructure *ea);
 extern float MPU_GlobalTemp;
 
 //MPU6050操作函数
-void MPU6050_DataRegUpdate (int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz);
-void MPU6050_SetClockSource (uint8_t source);
-void MPU6050_SetFullScaleGyroRange (uint8_t range);
-void MPU6050_SetFullScaleAccelRange (uint8_t range);
-void MPU6050_SetSleepEnabled (FunctionalState enabled);
-uint8_t MPU6050_GetDeviceID (void);
-Bool_ClassType MPU6050_TestConnection (void);
-void MPU6050_SetI2CMasterModeEnabled (FunctionalState ctrl);
-void MPU6050_SetI2CBypassEnabled (FunctionalState ctrl);
-void MPU6050_SetDataInterrupt (void);
-void MPU6050_DeviceInit (void);
-void MPU6050_BeforeDelay (void);
-void MPU6050_SetInnerDMPInit (void);
-float MPU6050_ReadTemperature (void);
 u8 MPU6050_SetDigitalLowFilter (u16 lpf);
 u8 MPU6050_SetSampleRate (u16 rate);
+Bool_ClassType MPU6050_DeviceInit (void);
+uint8_t MPU6050_SetInnerDMPInit (void);
+float MPU6050_ReadTemperature (void);
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga);
 
 //解算库
@@ -421,7 +410,6 @@ static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
 Bool_ClassType run_self_test (void);
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea);
-void MPUDevice_RTTask (void);
 
 #endif
 

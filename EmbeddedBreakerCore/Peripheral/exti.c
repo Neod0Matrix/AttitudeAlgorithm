@@ -129,9 +129,7 @@ void EXTI15_10_IRQHandler (void)
 		非调试模式采用MPU-INT外部中断触发
 	*/
 	if (pwsf != JBoot && EXTI_GetITStatus(MPU_INT_EXTI_Line) != RESET)
-	{
-		
-	}
+		dmpAttitudeAlgorithm(&eas);										
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS

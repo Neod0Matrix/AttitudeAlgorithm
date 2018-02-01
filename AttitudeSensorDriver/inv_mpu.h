@@ -1,4 +1,15 @@
-
+#ifndef __INV_MPU_H__
+#define __INV_MPU_H__
+#include "stdafx.h"
+//code by </MATRIX>@Neod Anderjon
+//author: Neod Anderjon
+//====================================================================================================
+/*
+ $License:
+    Copyright (C) 2011-2012 InvenSense Corporation, All Rights Reserved.
+    See included License.txt for License information.
+ $
+ */
 /**
  *  @addtogroup  DRIVERS Sensor Driver Layer
  *  @brief       Hardware drivers to communicate with sensors via I2C.
@@ -13,9 +24,6 @@
  *                  MPU9250 (or MPU6500 w/ AK8963 on the auxiliary bus)
  */
 
-#ifndef _INV_MPU_H_
-#define _INV_MPU_H_
-
 #define INV_X_GYRO      (0x40)
 #define INV_Y_GYRO      (0x20)
 #define INV_Z_GYRO      (0x10)
@@ -23,17 +31,18 @@
 #define INV_XYZ_ACCEL   (0x08)
 #define INV_XYZ_COMPASS (0x01)
 
+//移植官方MSP430 DMP驱动过来
 struct int_param_s {
 //#if defined EMPL_TARGET_MSP430 || defined MOTION_DRIVER_TARGET_MSP430
     void (*cb)(void);
     unsigned short pin;
     unsigned char lp_exit;
     unsigned char active_low;
-/*#elif defined EMPL_TARGET_UC3L0
-    unsigned long pin;
-    void (*cb)(volatile void*);
-    void *arg;
-#endif		*/
+//#elif defined EMPL_TARGET_UC3L0
+//    unsigned long pin;
+//    void (*cb)(volatile void*);
+//    void *arg;
+//#endif
 };
 
 #define MPU_INT_STATUS_DATA_READY       (0x0001)
@@ -117,6 +126,9 @@ int mpu_reg_dump(void);
 int mpu_read_reg(unsigned char reg, unsigned char *data);
 int mpu_run_self_test(long *gyro, long *accel);
 int mpu_register_tap_cb(void (*func)(unsigned char, unsigned char));
-void myget_ms(unsigned long *time);
+void mget_ms(unsigned long *time);
+
 #endif  /* #ifndef _INV_MPU_H_ */
 
+//====================================================================================================
+//code by </MATRIX>@Neod Anderjon
