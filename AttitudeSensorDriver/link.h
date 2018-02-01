@@ -40,19 +40,15 @@
 //是否开启急停外部中断
 typedef enum {StewEXTI_Enable = 1, StewEXTI_Disable = !StewEXTI_Enable}	Stew_EXTI_Setting;
 extern Stew_EXTI_Setting			StewEXTI_Switch;
-//是否开启陀螺仪调试模式
-typedef enum {GDM_Enable = 1, GDM_Disable = !GDM_Enable} GyroDebugModeSetting;
-extern GyroDebugModeSetting			GDM_Switch;
 
 //urc开源链接编号
 typedef enum 
 {
 	urc_stew 	= 15,
-	urc_gdm		= 16,
 } AHRS_SwitchNbr;
 
 //裁去protocol.h中的定义放到这里来重新定义urc协议长度
-#define Max_Option_Value		16u
+#define Max_Option_Value		15u
 
 //裁去ui.h中定义的总切屏数到这里来重新定义
 #define ScreenPageCount			5u						

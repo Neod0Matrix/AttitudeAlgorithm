@@ -6,7 +6,6 @@
 //该文件写入对框架的函数调用支持
 
 Stew_EXTI_Setting			StewEXTI_Switch;
-GyroDebugModeSetting		GDM_Switch;
 
 //链接到Universal_Resource_Config函数的模块库
 void ModuleAA_UniResConfig (void)
@@ -16,21 +15,12 @@ void ModuleAA_UniResConfig (void)
 		但也有可能普通监测不够快
 	*/
 	StewEXTI_Switch 	= StewEXTI_Enable;				//StewEXTI_Enable	StewEXTI_Disable
-	
-	/*
-		陀螺仪本身是个比较复杂的器件
-		需要对它的诸多参数进行调试
-		这些调试参数在实际使用中不一定需要开启占用进程
-	*/
-	GDM_Switch			= GDM_Enable;					//GDM_Enable		GDM_Disable
 }
 
 //模块选项映射表，链接到urcMapTable_Print函数
 void ModuleAA_URCMap (void)
 {
 	printf("\r\n%02d 	Stew EXTI Setting", urc_stew);
-	usart1WaitForDataTransfer();
-	printf("\r\n%02d 	Gyro Debug Mode Setting", urc_gdm);
 	usart1WaitForDataTransfer();
 }
 
@@ -40,7 +30,6 @@ void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type)
 	switch (sw_type)
 	{
 	case urc_stew: 		StewEXTI_Switch	= (Stew_EXTI_Setting)ed_status;		break;	
-	case urc_gdm:		GDM_Switch 		= (GyroDebugModeSetting)ed_status;	break;	
 	}
 }
 

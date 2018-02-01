@@ -11,8 +11,6 @@
 void prio1TaskBus (void)
 {
 	OrderResponse_Handler();						//指令响应函数
-	if (GDM_Switch == GDM_Enable)
-		dmpAttitudeAlgorithm(&eas);
 }
 
 void prio2TaskBus (void)

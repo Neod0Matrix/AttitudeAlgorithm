@@ -294,7 +294,7 @@ void MPU6050_DeviceInit (void)
     MPU6050_SetClockSource(MPU6050_CLOCK_PLL_XGYRO); 		//设置时钟
     MPU6050_SetFullScaleGyroRange(MPU6050_GYRO_FS_2000);	//陀螺仪最大量程 +-1000度每秒
     MPU6050_SetFullScaleAccelRange(MPU6050_ACCEL_FS_2);		//加速度度最大量程 +-2G
-    MPU6050_SetSleepEnabled(DISABLE); 						//进入工作状态
+	MPU6050_SetSleepEnabled(DISABLE); 						//取消睡眠状态
 	MPU6050_SetI2CMasterModeEnabled(DISABLE);	 			//不让MPU6050控制AUXI2C
 	MPU6050_SetI2CBypassEnabled(DISABLE);	 				//主控制器的I2C与MPU6050的AUXI2C直通，控制器可以直接访问其他设备
 	MPU6050_SetInnerDMPInit();								//内置DMP初始化
@@ -330,7 +330,10 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	
 	//read dmp once and write into array memory
 	if (dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more))
+	{
+		__ShellHeadSymbol__; U1SD("Gyroscope Read DMP Fatal\r\n");
 		return 1;
+	}
 	if (sensors & INV_WXYZ_QUAT)
 	{    
 		q0 = quat[0] / q30;
@@ -347,22 +350,22 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		RadRangeLimitExcess(ea -> roll);
 		RadRangeLimitExcess(ea -> yaw);
 		
-		if (GDM_Switch == GDM_Enable)
+		//com port test
+		__ShellHeadSymbol__;
+		if (No_Data_Receive)
 		{
-			//com port test
-			__ShellHeadSymbol__;
-			if (No_Data_Receive)
-			{
-				printf("Gyroscope Debug Mode, Euler Angle Print: [Pitch: %.2f | Roll: %.2f | Yaw: %.2f]\r\n", 
-						ea -> pitch, ea -> roll, ea -> yaw);			
-				usart1WaitForDataTransfer();		
-			}
+			printf("Gyroscope Debug Mode, Euler Angle Print: [Pitch: %.2f | Roll: %.2f | Yaw: %.2f]\r\n", 
+					ea -> pitch, ea -> roll, ea -> yaw);			
+			usart1WaitForDataTransfer();		
 		}
 		
 		return 0;
 	}
 	else
+	{
+		__ShellHeadSymbol__; U1SD("Gyroscope DMP Algorithm Fatal\r\n");
 		return 2;
+	}
 }
 
 //====================================================================================================

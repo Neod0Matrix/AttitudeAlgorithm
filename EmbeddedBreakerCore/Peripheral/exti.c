@@ -39,8 +39,6 @@ void ucEXTI_ModeConfig (
 //外部中断初始化函数
 void EXTI_Config_Init (void)
 {
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			//外部中断，需要使能AFIO时钟
-   
 	//STEW(正常状态低电平，触发拉高) PB8	
 	if (StewEXTI_Switch == StewEXTI_Enable)
 	{
@@ -53,7 +51,7 @@ void EXTI_Config_Init (void)
 							GPIOC,					
 							NI,				
 							EBO_Disable);
-		//PB8 STEW
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);		//外部中断，需要使能AFIO时钟
 		ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
 							GPIO_PinSource8, 
 							Stew_EXTI_Line, 
@@ -76,6 +74,7 @@ void EXTI_Config_Init (void)
 						GPIOB,					
 						IHL,										//NI			
 						EBO_Disable);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			//外部中断，需要使能AFIO时钟
 	ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
 						GPIO_PinSource12, 
 						MPU_INT_EXTI_Line, 
@@ -100,7 +99,7 @@ void EXTI9_5_IRQHandler (void)
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
-	if (StewEXTI_Switch == StewEXTI_Enable && STEW_LTrigger)  		//长按检测急停
+	if (StewEXTI_Switch == StewEXTI_Enable && EXTI_GetITStatus(Stew_EXTI_Line) != RESET)//长按检测急停
 	{
 		EMERGENCYSTOP;												
 		EMERGENCYSTOP_16;
@@ -129,8 +128,10 @@ void EXTI15_10_IRQHandler (void)
 		INT触发更新，其触发频率与DEFAULT_MPU_HZ定义有关
 		非调试模式采用MPU-INT外部中断触发
 	*/
-	if (pwsf != JBoot && Is_MPUDataTransfer_Finished && GDM_Switch == GDM_Disable)
+	if (pwsf != JBoot && EXTI_GetITStatus(MPU_INT_EXTI_Line) != RESET)
+	{
 		dmpAttitudeAlgorithm(&eas);
+	}
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
