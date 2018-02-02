@@ -63,6 +63,7 @@ extern void U1RSD_example (void);						//串口处理例程封装
 void ModuleAA_UniResConfig (void);
 void ModuleAA_URCMap (void);
 void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type);
+void dmpAttitudeAlgorithm_RT (void);
 
 #endif
 

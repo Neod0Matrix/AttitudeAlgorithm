@@ -258,6 +258,12 @@ float MPU6050_ReadTemperature (void)
 	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, buf); 
     raw = ((u16)buf[0] << 8) | buf[1];  
     temp = 36.53 + ((double)raw) / 340; 
+	/* print test visual 
+	if (No_Data_Receive && PC_Switch == PC_Enable)
+	{
+		printf("\r\nMPU Temperature: %.2f\r\n", temp);
+		usart1WaitForDataTransfer();		
+	}*/
 	
 	return temp;
 }
@@ -270,8 +276,8 @@ float MPU6050_ReadTemperature (void)
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 {	
 	u8 more;
-	long quat[4];										//四元数获取
-	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	//calculation bias
+	long quat[4];										
+	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	//4 quat calculation bias
 	short gyro[3], accel[3], sensors;
 	unsigned long sensor_timestamp;
 

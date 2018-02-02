@@ -7,6 +7,8 @@
 
 Stew_EXTI_Setting			StewEXTI_Switch;
 
+#define MPURunInterval		5000
+
 //链接到Universal_Resource_Config函数的模块库
 void ModuleAA_UniResConfig (void)
 {
@@ -51,7 +53,6 @@ void U1RSD_example (void)
 			}
 		}
         U1SD("\r\n");									//插入换行
-		
         USART1_RX_STA = 0u;								//接收状态标记
     }
 }
@@ -67,31 +68,63 @@ void OLED_ScreenP4_Const (void)
 //OLED AttitudeAlgorithm数据显示
 void OLED_DisplayAA (EulerAngleStructure *ea)
 {	
-	//显示Pitch角度
-	OLED_ShowString(strPos(0u), ROW1, (const u8*)"P:", Font_Size);
-	OLED_ShowNum(strPos(2u), ROW1, ea -> pitch, 3u, Font_Size);	
-	OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(6u), ROW1, ((u16)(ea -> pitch * 10) % 10), 1u, Font_Size);
+	//静态更新
+	static float pitchDisp = 0.f, rollDisp = 0.f, yawDisp = 0.f, tempDisp = 0.f;
 	
-	//显示Roll角度
-	OLED_ShowString(strPos(8u), ROW1, (const u8*)"R:", Font_Size);
-	OLED_ShowNum(strPos(10u), ROW1, ea -> roll, 3u, Font_Size);	
-	OLED_ShowString(strPos(13u), ROW1, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(14u), ROW1, ((u16)(ea -> roll * 10) % 10), 1u, Font_Size);
+	//显示Pitch角度(x轴)
+	if (pitchDisp != ea -> pitch)
+	{
+		pitchDisp = ea -> pitch;
+		OLED_ShowString(strPos(0u), ROW1, (const u8*)"P:", Font_Size);
+		OLED_ShowNum(strPos(2u), ROW1, pitchDisp, 3u, Font_Size);	
+		OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
+		OLED_ShowNum(strPos(6u), ROW1, ((u16)(pitchDisp * 10) % 10), 1u, Font_Size);
+	}
 	
-	//显示Yaw角度
-	OLED_ShowString(strPos(0u), ROW2, (const u8*)"Y:", Font_Size);
-	OLED_ShowNum(strPos(2u), ROW2, ea -> yaw, 3u, Font_Size);	
-	OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(6u), ROW2, ((u16)(ea -> yaw * 10) % 10), 1u, Font_Size);
+	//显示Roll角度(y轴)
+	if (rollDisp != ea -> roll)
+	{
+		rollDisp = ea -> roll;
+		OLED_ShowString(strPos(8u), ROW1, (const u8*)"R:", Font_Size);
+		OLED_ShowNum(strPos(10u), ROW1, rollDisp, 3u, Font_Size);	
+		OLED_ShowString(strPos(13u), ROW1, (const u8*)".", Font_Size);
+		OLED_ShowNum(strPos(14u), ROW1, ((u16)(rollDisp * 10) % 10), 1u, Font_Size);
+	}
+	
+	//显示Yaw角度(z轴)
+	if (yawDisp != ea -> yaw)
+	{
+		yawDisp = ea -> yaw;
+		OLED_ShowString(strPos(0u), ROW2, (const u8*)"Y:", Font_Size);
+		OLED_ShowNum(strPos(2u), ROW2, yawDisp, 3u, Font_Size);	
+		OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
+		OLED_ShowNum(strPos(6u), ROW2, ((u16)(yawDisp * 10) % 10), 1u, Font_Size);
+	}
 	
 	//显示MPU芯片温度
-	OLED_ShowString(strPos(8u), ROW2, (const u8*)"T:", Font_Size);
-	OLED_ShowNum(strPos(10u), ROW2, MPU_GlobalTemp, 3u, Font_Size);	
-	OLED_ShowString(strPos(13u), ROW2, (const u8*)".", Font_Size);
-	OLED_ShowNum(strPos(14u), ROW2, ((u16)(MPU_GlobalTemp * 10) % 10), 1u, Font_Size);
+	if (tempDisp != MPU_GlobalTemp)
+	{
+		tempDisp = MPU_GlobalTemp;
+		OLED_ShowString(strPos(8u), ROW2, (const u8*)"T:", Font_Size);
+		OLED_ShowNum(strPos(10u), ROW2, tempDisp, 3u, Font_Size);	
+		OLED_ShowString(strPos(13u), ROW2, (const u8*)".", Font_Size);
+		OLED_ShowNum(strPos(14u), ROW2, ((u16)(tempDisp * 10) % 10), 1u, Font_Size);
+	}
 	
 	OLED_Refresh_Gram();
+}
+
+//MPU实时任务
+void dmpAttitudeAlgorithm_RT (void)
+{
+	static u16 runMPUUpdateSem = 0u;
+					
+	if ((runMPUUpdateSem++ == TickDivsIntervalus(MPURunInterval) - 1) 
+		&& Return_Error_Type == Error_Clear && pwsf != JBoot)
+	{
+		runMPUUpdateSem = 0u;
+		dmpAttitudeAlgorithm(&eas);													
+	}
 }
 
 //====================================================================================================
