@@ -71,7 +71,7 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 	//静态更新
 	static float pitchDisp = 0.f, rollDisp = 0.f, yawDisp = 0.f, tempDisp = 0.f;
 	
-	//显示Pitch角度(x轴)
+	//显示俯仰Pitch角度(x轴)
 	if (pitchDisp != ea -> pitch)
 	{
 		pitchDisp = ea -> pitch;
@@ -80,8 +80,7 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 		OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
 		OLED_ShowNum(strPos(6u), ROW1, ((u16)(pitchDisp * 10) % 10), 1u, Font_Size);
 	}
-	
-	//显示Roll角度(y轴)
+	//显示翻滚Roll角度(y轴)
 	if (rollDisp != ea -> roll)
 	{
 		rollDisp = ea -> roll;
@@ -90,8 +89,7 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 		OLED_ShowString(strPos(13u), ROW1, (const u8*)".", Font_Size);
 		OLED_ShowNum(strPos(14u), ROW1, ((u16)(rollDisp * 10) % 10), 1u, Font_Size);
 	}
-	
-	//显示Yaw角度(z轴)
+	//显示航向Yaw角度(z轴)
 	if (yawDisp != ea -> yaw)
 	{
 		yawDisp = ea -> yaw;
@@ -100,7 +98,6 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 		OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
 		OLED_ShowNum(strPos(6u), ROW2, ((u16)(yawDisp * 10) % 10), 1u, Font_Size);
 	}
-	
 	//显示MPU芯片温度
 	if (tempDisp != MPU_GlobalTemp)
 	{

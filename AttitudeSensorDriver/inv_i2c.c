@@ -40,16 +40,24 @@ void invI2C_IO_Init (void)
 						EBO_Disable);
 }
 
-//起始信号
-void invI2C_Start (void)
+//I2C起始信号
+Bool_ClassType invI2C_Start (void)
 {
 	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 1;	
+	//here can select no judge sda level
+	if (!IO_GYI2C_SDA_R)
+		return False;
 	IO_GYI2C_SCL = 1;
 	mpu_delay_us();
  	IO_GYI2C_SDA_W = 0;
+	//here can select no judge sda level
+	if (IO_GYI2C_SDA_R)
+		return False;
 	mpu_delay_us();
 	IO_GYI2C_SCL = 0;
+	
+	return True;
 }
 
 //I2C停止信号	  
@@ -77,7 +85,7 @@ Bool_ClassType invI2C_WaitAck (void)
 	while (IO_GYI2C_SDA_R)
 	{
 		ucErrTime++;
-		//等待超时，读取失败
+		//wait timeout, read fatal
 		if (ucErrTime > 250)
 		{
 			invI2C_Stop();
@@ -89,24 +97,16 @@ Bool_ClassType invI2C_WaitAck (void)
 	return False;  
 } 
 
-//I2C产生应答信号
-void invI2C_ProdAck (void)
+//I2C产生应答/不应答信号
+void invI2C_NoAckorAck (i2cNoAckorAck signal)
 {
 	IO_GYI2C_SCL = 0;
 	GyroI2C_SDAModeTransfer(SDA_Ws);
-	IO_GYI2C_SDA_W = 0;
-	mpu_delay_us();
-	IO_GYI2C_SCL = 1;
-	mpu_delay_us();
-	IO_GYI2C_SCL = 0;
-}
-	
-//I2C产生不应答信号 
-void invI2C_ProdNoAck (void)
-{
-	IO_GYI2C_SCL = 0;
-	GyroI2C_SDAModeTransfer(SDA_Ws);
-	IO_GYI2C_SDA_W = 1;
+	/*
+		variable transfer to i/o signal
+		signal=0 ack; signal=1 noack
+	*/
+	IO_GYI2C_SDA_W = signal;		
 	mpu_delay_us();
 	IO_GYI2C_SCL = 1;
 	mpu_delay_us();
@@ -132,12 +132,12 @@ void invI2C_SendByte (u8 txd)
 } 	 
 
 //I2C读取一个字节
-u8 invI2C_ReadByte (Bool_ClassType ack)
+u8 invI2C_ReadByte (i2cNoAckorAck signal)
 {
 	u8 i, receive = 0;
 	
 	GyroI2C_SDAModeTransfer(SDA_Rs);
-    for (i = 0; i < 8; i++ )
+    for (i = 0; i < 8; i++)
 	{
         IO_GYI2C_SCL = 0;
         mpu_delay_us();
@@ -147,91 +147,25 @@ u8 invI2C_ReadByte (Bool_ClassType ack)
 			receive++;   
 		mpu_delay_us();
     }			
-    if (ack)
-        invI2C_ProdAck(); 
-    else
-        invI2C_ProdNoAck();
+    invI2C_NoAckorAck(signal);
 	
     return receive;
-}
-  
-//DMP库调用I2C写入函数
-Bool_ClassType i2cWrite (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
-{
-	int i;
-	
-    invI2C_Start();
-	invI2C_SendByte((addr << 1) | 0);	//发送器件地址+写命令
-    if (invI2C_WaitAck()) 
-	{
-        invI2C_Stop();
-        return True;
-    }
-    invI2C_SendByte(reg);
-    invI2C_WaitAck();
-	for (i = 0; i < len; i++) 
-	{
-        invI2C_SendByte(data[i]);
-        if (invI2C_WaitAck()) 
-		{
-            invI2C_Stop();
-            return True;
-        }
-    }
-    invI2C_Stop();
-	
-    return False;
-}
-
-//DMP库调用I2C读函数
-Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
-{	
-	invI2C_Start();
-	invI2C_SendByte((addr << 1) | 0);
-    if (invI2C_WaitAck()) 
-	{
-        invI2C_Stop();
-        return True;
-    }
-	invI2C_SendByte(reg);
-	invI2C_WaitAck();
-    invI2C_Start();
-	invI2C_SendByte((addr << 1) | 1);
-    invI2C_WaitAck();
-	//read total register
-	while (len)
-	{
-		if (len == 1)
-			*buf = invI2C_ReadByte(False);
-		else
-			*buf = invI2C_ReadByte(True);
-		len--;
-		buf++;
-	}
-	
-    invI2C_Stop();
-	
-    return False;
 }
 
 //I2C写一个字节
 Bool_ClassType invI2C_WriteDevByte (u8 dev, u8 reg, u8 data)
 {
-	invI2C_Start();
+	if (!invI2C_Start())
+		return True;
+	//send device address and write command
 	invI2C_SendByte((dev << 1) | 0);
 	if (invI2C_WaitAck()) 
-	{
-        invI2C_Stop();
         return True;
-    }
 	invI2C_SendByte(reg);
 	invI2C_WaitAck();
 	invI2C_SendByte(data);
 	if (invI2C_WaitAck()) 
-	{
-        invI2C_Stop();
         return True;
-    }
 	invI2C_Stop();
 	
     return False;
@@ -242,18 +176,70 @@ u8 invI2C_ReadDevByte (u8 dev, u8 reg)
 {
 	u8 res;
 	
-	invI2C_Start();	
+	if (!invI2C_Start())
+		return True;	
+	//send device address and write command
 	invI2C_SendByte((dev << 1) | 0);	  
 	invI2C_WaitAck();
 	invI2C_SendByte(reg); 
 	invI2C_WaitAck();	  
-	invI2C_Start();
+	if (!invI2C_Start())
+		return True;
+	//send device address and write command
 	invI2C_SendByte((dev << 1) | 1);	     
 	invI2C_WaitAck();
-	res = invI2C_ReadByte(False);	   
+	res = invI2C_ReadByte(i2cAck);	   
     invI2C_Stop();
 
 	return res;
+}
+
+//DMP库调用I2C写入函数
+Bool_ClassType i2cWrite (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
+{
+	int i;
+	
+    if (!invI2C_Start())
+		return True;
+	//send device address and write command
+	invI2C_SendByte((addr << 1) | 0);	
+    if (invI2C_WaitAck()) 
+        return True;
+    invI2C_SendByte(reg);
+    invI2C_WaitAck();
+	for (i = 0; i < len; i++) 
+	{
+        invI2C_SendByte(data[i]);
+        if (invI2C_WaitAck()) 
+            return True;
+    }
+    invI2C_Stop();
+	
+    return False;
+}
+
+//DMP库调用I2C读函数
+Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
+{	
+	if (!invI2C_Start())
+		return True;
+	//send device address and write command
+	invI2C_SendByte((addr << 1) | 0);
+    if (invI2C_WaitAck()) 
+        return True;
+	invI2C_SendByte(reg);
+	invI2C_WaitAck();
+    if (!invI2C_Start())
+		return True;
+	//send device address and write command
+	invI2C_SendByte((addr << 1) | 1);
+    invI2C_WaitAck();
+	//read total register, write data into buffer point
+	while (len)
+		*buf = invI2C_ReadByte((len == 1)? i2cAck : i2cNoAck), len--, buf++;
+    invI2C_Stop();
+	
+    return False;
 }
 
 //====================================================================================================
