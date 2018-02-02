@@ -50,7 +50,7 @@ void bspPeriSysCalls (void)
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
-	MPU6050_DeviceInit();								//陀螺仪设备初始化
+	GyroscopeTotalComponentInit();						//陀螺仪设备初始化
 }
 
 /*$PAGE*/

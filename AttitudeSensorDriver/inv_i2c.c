@@ -24,7 +24,7 @@ void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
 {
 	//寄存器写法
 	Gyro_GPIOx -> CRH &= 0XFFFF0FFF;
-	Gyro_GPIOx -> CRH |= ((sta == SDA_Ws)? 3 : 8) << 12;				//仅兼容11脚
+	Gyro_GPIOx -> CRH |= ((sta == SDA_Ws)? 3 : 8) << 12;//仅兼容11脚
 }	
  
 //IIC IO初始化
@@ -36,11 +36,11 @@ void invI2C_IO_Init (void)
 						GPIORemapSettingNULL,		
 						Gyro_SCL_Pin | Gyro_SDA_Pin,					
 						Gyro_GPIOx,				
-						IHL,											//初始拉高	
+						IHL,							//初始拉高	
 						EBO_Disable);
 }
 
-//I2C起始信号
+//起始信号
 Bool_ClassType invI2C_Start (void)
 {
 	GyroI2C_SDAModeTransfer(SDA_Ws);
@@ -85,7 +85,7 @@ Bool_ClassType invI2C_WaitAck (void)
 	while (IO_GYI2C_SDA_R)
 	{
 		ucErrTime++;
-		//wait timeout, read fatal
+		//wait timeout
 		if (ucErrTime > 250)
 		{
 			invI2C_Stop();
@@ -102,11 +102,11 @@ void invI2C_NoAckorAck (i2cNoAckorAck signal)
 {
 	IO_GYI2C_SCL = 0;
 	GyroI2C_SDAModeTransfer(SDA_Ws);
-	/*
-		variable transfer to i/o signal
-		signal=0 ack; signal=1 noack
-	*/
-	IO_GYI2C_SDA_W = signal;		
+	/*	variable transfer to i/o signal.
+	 *	signal=1 ack; signal=0 noack.
+	 *	actual level opposite to signal value.
+	**/
+	IO_GYI2C_SDA_W = !signal;		
 	mpu_delay_us();
 	IO_GYI2C_SCL = 1;
 	mpu_delay_us();
@@ -137,7 +137,7 @@ u8 invI2C_ReadByte (i2cNoAckorAck signal)
 	u8 i, receive = 0;
 	
 	GyroI2C_SDAModeTransfer(SDA_Rs);
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 8; i++ )
 	{
         IO_GYI2C_SCL = 0;
         mpu_delay_us();
@@ -147,22 +147,22 @@ u8 invI2C_ReadByte (i2cNoAckorAck signal)
 			receive++;   
 		mpu_delay_us();
     }			
-    invI2C_NoAckorAck(signal);
+	invI2C_NoAckorAck(signal);
 	
     return receive;
 }
-
+  
 //I2C写一个字节
 Bool_ClassType invI2C_WriteDevByte (u8 dev, u8 reg, u8 data)
 {
 	if (!invI2C_Start())
 		return True;
-	//send device address and write command
 	invI2C_SendByte((dev << 1) | 0);
 	if (invI2C_WaitAck()) 
         return True;
 	invI2C_SendByte(reg);
-	invI2C_WaitAck();
+	if (invI2C_WaitAck()) 
+        return True;
 	invI2C_SendByte(data);
 	if (invI2C_WaitAck()) 
         return True;
@@ -177,18 +177,19 @@ u8 invI2C_ReadDevByte (u8 dev, u8 reg)
 	u8 res;
 	
 	if (!invI2C_Start())
-		return True;	
-	//send device address and write command
+		return True;
 	invI2C_SendByte((dev << 1) | 0);	  
-	invI2C_WaitAck();
+	if (invI2C_WaitAck()) 
+        return True;
 	invI2C_SendByte(reg); 
-	invI2C_WaitAck();	  
+	if (invI2C_WaitAck()) 
+        return True;	  
 	if (!invI2C_Start())
 		return True;
-	//send device address and write command
 	invI2C_SendByte((dev << 1) | 1);	     
-	invI2C_WaitAck();
-	res = invI2C_ReadByte(i2cAck);	   
+	if (invI2C_WaitAck()) 
+        return True;
+	res = invI2C_ReadByte(i2cNoAck);
     invI2C_Stop();
 
 	return res;
@@ -201,17 +202,17 @@ Bool_ClassType i2cWrite (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
 	
     if (!invI2C_Start())
 		return True;
-	//send device address and write command
-	invI2C_SendByte((addr << 1) | 0);	
+	invI2C_SendByte((addr << 1) | 0);	//发送器件地址+写命令
     if (invI2C_WaitAck()) 
         return True;
     invI2C_SendByte(reg);
-    invI2C_WaitAck();
+    if (invI2C_WaitAck()) 
+        return True;
 	for (i = 0; i < len; i++) 
 	{
         invI2C_SendByte(data[i]);
         if (invI2C_WaitAck()) 
-            return True;
+        return True;
     }
     invI2C_Stop();
 	
@@ -223,20 +224,21 @@ Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 {	
 	if (!invI2C_Start())
 		return True;
-	//send device address and write command
 	invI2C_SendByte((addr << 1) | 0);
     if (invI2C_WaitAck()) 
         return True;
 	invI2C_SendByte(reg);
-	invI2C_WaitAck();
+	if (invI2C_WaitAck()) 
+        return True;
     if (!invI2C_Start())
 		return True;
-	//send device address and write command
 	invI2C_SendByte((addr << 1) | 1);
-    invI2C_WaitAck();
-	//read total register, write data into buffer point
+    if (invI2C_WaitAck()) 
+        return True;
+	//read total register
 	while (len)
-		*buf = invI2C_ReadByte((len == 1)? i2cAck : i2cNoAck), len--, buf++;
+		*buf = invI2C_ReadByte((len == 1)? i2cNoAck : i2cAck), len--, buf++;
+	
     invI2C_Stop();
 	
     return False;

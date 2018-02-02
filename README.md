@@ -7,8 +7,8 @@ Copyright
 
 Update
 ===============
-
-	最后更新时间: 2018/02/02pm1509
+	
+	最后更新时间: 2018/02/03am0012
 
 Project Manual
 ==============
@@ -36,6 +36,9 @@ Use Manual
 	同一头文件包含头文件：stdafx.h Windows编程标准包含
 	使用前请先打开config.c config.h文件按照注释提示修改系统资源配置
 	之后详细阅读README.md，并且保证自己很清醒
+	根据实际芯片器件选择设置工程宏及编译优化选项
+	define: STM32F10X_HD,USE_STDPERIPH_DRIVER
+	Optimize for time, One ELF Section per Function
 	
 Inner IO Map
 ===============

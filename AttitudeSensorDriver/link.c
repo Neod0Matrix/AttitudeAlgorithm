@@ -68,7 +68,7 @@ void OLED_ScreenP4_Const (void)
 //OLED AttitudeAlgorithm数据显示
 void OLED_DisplayAA (EulerAngleStructure *ea)
 {	
-	//静态更新
+	//静态更新，节省进程占用
 	static float pitchDisp = 0.f, rollDisp = 0.f, yawDisp = 0.f, tempDisp = 0.f;
 	
 	//显示俯仰Pitch角度(x轴)
@@ -111,15 +111,21 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 	OLED_Refresh_Gram();
 }
 
-//MPU实时任务
+//MPU实时任务 link到time_base.c TIM2_IRQHandler中断函数中
 void dmpAttitudeAlgorithm_RT (void)
 {
-	static u16 runMPUUpdateSem = 0u;
+	/* ARM platform can set static var here, 8051 don't do it. */
+	static u16 runMPUUpdateSem = 0u;			
 					
 	if ((runMPUUpdateSem++ == TickDivsIntervalus(MPURunInterval) - 1) 
 		&& Return_Error_Type == Error_Clear && pwsf != JBoot)
 	{
 		runMPUUpdateSem = 0u;
+		/* 	Update once data.
+		 *	This call need more optimize for real-time and jump RT call out.
+		 *	For test you can push it here and setting debug mode to check it work elapsed time.
+		 *	You may need to notice register flag symbol change process.
+		**/
 		dmpAttitudeAlgorithm(&eas);													
 	}
 }

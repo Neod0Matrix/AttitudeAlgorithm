@@ -9,7 +9,6 @@
 
 //链接所有AttitudeAlgorithm模块的头文件
 #include <stdint.h>
-#include <string.h>
 #include "inv_i2c.h"
 #include "mpu6050.h"
 #include "inv_mpu_dmp_motion_driver.h"

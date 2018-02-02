@@ -34,13 +34,8 @@ Bool_ClassType run_self_test (void)
     long gyro[3], accel[3];
 	
     result = mpu_run_self_test(gyro, accel);
-#if defined MPU6050
-    if (result == 0x3) 							//MPU6050: 0x3
+    if (result == 0x3) 							//MPU6500: 0x7
 	{
-#else 
-	if (result == 0x7) 							//MPU6500: 0x7
-	{
-#endif
 		//Test passed. We can trust the gyro data here, so let's push it down to the DMP.
 		float sens;
 		u16 accel_sens;
@@ -126,7 +121,7 @@ u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
 uint8_t mpu_intrinsic_dmp_init (void)
 { 
 	//algorithm matrix
-	signed char gyro_orientation[9] = {-1, 	0, 	0,
+	static signed char gyro_orientation[9] = {-1, 	0, 	0,
 										0, 	-1, 0,
 										0, 	0, 	1};
 	
@@ -150,17 +145,32 @@ uint8_t mpu_intrinsic_dmp_init (void)
 																	return 0;
 }
 
+//初始化前的短暂延时
+void MPU6050_BeforeDelay (void)
+{
+	u16 i, j;
+	
+	for (i = 0; i < 1000; i++)
+		for (j = 0; j < 1000; j++);
+}
+
 //设置MPU6050的数字低通滤波器，lpf:数字低通滤波频率(Hz)
 u8 MPU6050_SetDigitalLowFilter (u16 lpf)
 {
 	u8 data = 0;
 	
-	if (lpf >= 188)			data = 1;
-	else if (lpf >= 98)		data = 2;
-	else if (lpf >= 42)		data = 3;
-	else if (lpf >= 20)		data = 4;
-	else if (lpf >= 10)		data = 5;
-	else 					data = 6;
+	if (lpf >= 188)
+		data = 1;
+	else if (lpf >= 98)
+		data = 2;
+	else if (lpf >= 42)
+		data = 3;
+	else if (lpf >= 20)
+		data = 4;
+	else if (lpf >= 10)
+		data = 5;
+	else 
+		data = 6;
 	
 	//设置数字低通滤波器  
 	return invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_CONFIG, data);
@@ -171,48 +181,77 @@ u8 MPU6050_SetSampleRate (u16 rate)
 {
 	u8 data;
 	
-	if (rate > 1000)	rate = 1000;
-	if (rate < 4) 		rate = 4;
-	//设置数字低通滤波器
+	if (rate > 1000)
+		rate = 1000;
+	if (rate < 4) rate = 4;
 	data = 1000 / rate - 1;
+	//设置数字低通滤波器
 	data = invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, data);
 	
 	//自动设置LPF为采样率的一半
  	return MPU6050_SetDigitalLowFilter(rate / 2);	
 }
 
-//初始化MPU6050设备
-Bool_ClassType MPU6050_DeviceInit (void) 
+//初始化陀螺仪设备
+Bool_ClassType GyroscopeTotalComponentInit (void) 
 {
+	uint8_t i, dmp_res;
+	
 	GyroAccelStructureInit(&gas);
 	EulerAngleStructureInit(&eas);
-	invI2C_IO_Init();													//I2C接口初始化
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 0x80);		//复位MPU6050
-	delay_ms(100);
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 0x00);		//唤醒MPU6050 
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 3 << 3);	//陀螺仪传感器,±2000dps
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 0 << 3);	//加速度传感器,±2g
-	MPU6050_SetSampleRate(DEFAULT_MPU_HZ);								//设置采样率
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 0x00);		//关闭所有中断
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 0x00);		//I2C主模式关闭
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_FIFO_EN, 0x00);			//关闭FIFO
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_PIN_CFG, 0x80);		//INT引脚低电平有效
-	//检测器件ID
+	invI2C_IO_Init();													//I2C port init
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 0x80);		//reset device
+	delay_ms(150);
+	//wake up device
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, MPU6050_CLOCK_INTERNAL);		 
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 3 << 3);	//gyroscope sensor, ±2000dps
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 0 << 3);	//accelerator sensor, ±2g
+	MPU6050_SetSampleRate(DEFAULT_MPU_HZ);								//setting sample rate
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 0x00);		//close all interrupt
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 0x00);		//close device I2C master mode  
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_FIFO_EN, 0x00);			//close FIFO
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_PIN_CFG, 0x80);		//INT pin low level valid
+	/* read device id. */
 	if (invI2C_ReadDevByte(MPUDEVADDR, MPU6050_RA_WHO_AM_I) == MPUDEVADDR)
 	{
-		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 0x01);	//设置CLKSEL,PLL X轴为参考
-		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_2, 0x00);	//加速度与陀螺仪都工作
+		//setting CLKSEL, PLL X-axis 
+		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, MPU6050_CLOCK_PLL_XGYRO);
+		//setting accelerator and gyroscope all work		
+		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_2, 0x00);	
 		MPU6050_SetSampleRate(DEFAULT_MPU_HZ);
 	}
 	else
-		return True;
-	//内置DMP初始化
-	while (mpu_intrinsic_dmp_init())
 	{
-		//必须成功初始化
-		__ShellHeadSymbol__; U1SD("MPU DMP Init Error, Restarting\r\n");
+		/* device address read fatal, can't build valid link, soft restart. */
+		__ShellHeadSymbol__; U1SD("MPU Read Device Address Fatal, Restarting\r\n");
+		Sys_Soft_Reset();
+	}
+	
+	/* intrinsic DMP init. */
+	__ShellHeadSymbol__; U1SD("MPU Intrinsic DMP Library, Loading...");
+	dmp_res = mpu_intrinsic_dmp_init();
+	while (dmp_res)
+	{
+		/* retry count more than setting value, soft reset. */
+		if (i++ == 5)
+		{
+			U1SD("More Fatal, Restarting\r\n");
+			Sys_Soft_Reset();
+		}
+		/* once fatal, get error code and retry. */
+		if (No_Data_Receive && PC_Switch == PC_Enable)
+		{
+			printf("Once Fatal Return Code: %d, Retrying\r\n", dmp_res);
+			usart1WaitForDataTransfer();		
+		}
 		delay_ms(100);
+		dmp_res = mpu_intrinsic_dmp_init();
 	}		
+	/*	MPU Gyroscope init successfully or not is very important.
+	 *  It must be finish all of pre-setting init process.
+		can into a correct work status.
+	**/
+	U1SD("Successfully\r\n");	
 	
 	return False;
 }
@@ -257,6 +296,7 @@ float MPU6050_ReadTemperature (void)
 	
 	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, buf); 
     raw = ((u16)buf[0] << 8) | buf[1];  
+	//here transfer to degree celsius
     temp = 36.53 + ((double)raw) / 340; 
 	/* print test visual 
 	if (No_Data_Receive && PC_Switch == PC_Enable)

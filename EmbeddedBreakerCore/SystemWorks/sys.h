@@ -7,12 +7,10 @@
 //系统底层功能配置
 
 //定义工程项目是否使用OS
-#define NUOS					0u							//不使用OS
-#define UOS						1u							//使用OS
 #ifdef useRTOSinProject
-#define SYSTEM_SUPPORT_OS		UOS							
+#define SYSTEM_SUPPORT_OS		1							
 #else
-#define SYSTEM_SUPPORT_OS		NUOS
+#define SYSTEM_SUPPORT_OS		0
 #endif
 																	    
 //位带操作,实现51类似的GPIO控制功能

@@ -108,6 +108,7 @@ void Universal_Resource_Config (void)
 
     /*
 		本工程属于可剪裁嵌入式项目，可以选择是否使用μCOS
+		选择使用OS的同时需要取消config.h中的相关注释
 	*/
 	TMMS				= Streak;						//RTOS				Streak
 	
