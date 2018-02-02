@@ -17,6 +17,10 @@ void prio2TaskBus (void)
 {
 	LVD_EW_Handler();								//输入电压低压监测
 	RTC_DataStorage(calendar);						//RTC时间寄存
+	/*
+		@EmbeddedBreakerCore Extern API Insert
+	*/
+	//MPU6050_GetGyroAccelOriginData(gas);			//MPU原始数据
 #ifdef useRTOSinProject
 	Semaphore_Handler();							//信号量处理
 #endif

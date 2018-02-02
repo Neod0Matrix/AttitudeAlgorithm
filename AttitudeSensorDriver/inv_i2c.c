@@ -24,7 +24,7 @@ void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
 {
 	//寄存器写法
 	Gyro_GPIOx -> CRH &= 0XFFFF0FFF;
-	Gyro_GPIOx -> CRH |= ((sta == SDA_Ws)? 3 : 8) << 12;//仅兼容11脚
+	Gyro_GPIOx -> CRH |= ((sta == SDA_Ws)? 3 : 8) << 12;				//仅兼容11脚
 }	
  
 //IIC IO初始化
@@ -36,7 +36,7 @@ void invI2C_IO_Init (void)
 						GPIORemapSettingNULL,		
 						Gyro_SCL_Pin | Gyro_SDA_Pin,					
 						Gyro_GPIOx,				
-						IHL,							//初始拉高	
+						IHL,											//初始拉高	
 						EBO_Disable);
 }
 
@@ -183,29 +183,6 @@ Bool_ClassType i2cWrite (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
     return False;
 }
 
-//I2C写一个字节
-Bool_ClassType invI2C_WriteDevByte (u8 reg, u8 data)
-{
-	invI2C_Start();
-	invI2C_SendByte((MPU6050_DEFAULT_ADDRESS << 1) | 0);
-	if (invI2C_WaitAck()) 
-	{
-        invI2C_Stop();
-        return True;
-    }
-	invI2C_SendByte(reg);
-	invI2C_WaitAck();
-	invI2C_SendByte(data);
-	if (invI2C_WaitAck()) 
-	{
-        invI2C_Stop();
-        return True;
-    }
-	invI2C_Stop();
-	
-    return False;
-}
-
 //DMP库调用I2C读函数
 Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 {	
@@ -237,18 +214,41 @@ Bool_ClassType i2cRead (uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
     return False;
 }
 
+//I2C写一个字节
+Bool_ClassType invI2C_WriteDevByte (u8 dev, u8 reg, u8 data)
+{
+	invI2C_Start();
+	invI2C_SendByte((dev << 1) | 0);
+	if (invI2C_WaitAck()) 
+	{
+        invI2C_Stop();
+        return True;
+    }
+	invI2C_SendByte(reg);
+	invI2C_WaitAck();
+	invI2C_SendByte(data);
+	if (invI2C_WaitAck()) 
+	{
+        invI2C_Stop();
+        return True;
+    }
+	invI2C_Stop();
+	
+    return False;
+}
+
 //I2C读设备寄存器地址一个字节
-u8 invI2C_ReadDevByte (u8 reg)
+u8 invI2C_ReadDevByte (u8 dev, u8 reg)
 {
 	u8 res;
 	
 	invI2C_Start();	
-	invI2C_SendByte((MPU6050_DEFAULT_ADDRESS << 1) | 0);	  
+	invI2C_SendByte((dev << 1) | 0);	  
 	invI2C_WaitAck();
 	invI2C_SendByte(reg); 
 	invI2C_WaitAck();	  
 	invI2C_Start();
-	invI2C_SendByte((MPU6050_DEFAULT_ADDRESS << 1) | 1);	     
+	invI2C_SendByte((dev << 1) | 1);	     
 	invI2C_WaitAck();
 	res = invI2C_ReadByte(False);	   
     invI2C_Stop();

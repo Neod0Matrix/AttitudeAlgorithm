@@ -8,6 +8,8 @@
 //该文件需要添加到stdafx.h内生效
 
 //链接所有AttitudeAlgorithm模块的头文件
+#include <stdint.h>
+#include <string.h>
 #include "inv_i2c.h"
 #include "mpu6050.h"
 #include "inv_mpu_dmp_motion_driver.h"
@@ -15,8 +17,6 @@
 #include "dmpmap.h"
 #include "inv_mpu.h"
 #include "filter.h"
-#include <stdint.h>
-#include <string.h>
 
 //MCU资源
 #define _MCU_Model_				"STM32F103RET6"			//主控芯片型号
