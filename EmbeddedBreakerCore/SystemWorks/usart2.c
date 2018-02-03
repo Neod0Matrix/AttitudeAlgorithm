@@ -109,8 +109,8 @@ void USART2_Init (u32 baud)
 
     NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 	//USART1优先级高于USART2
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03;//抢占优先级3
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x01;//子优先级1
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03;//抢占优先级
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;//子优先级
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		//IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);						//根据指定的参数初始化VIC寄存器
 	

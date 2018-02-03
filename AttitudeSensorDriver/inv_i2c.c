@@ -14,13 +14,13 @@
 #define IO_GYI2C_SDA_R   		PBin(11)  								//读SDA 
  
 //MPU使用delay函数
-void mpu_delay_us (void)
+static void mpu_delay_us (void)
 {
 	delay_us(2);
 }
 
 //陀螺仪I2C SDA 模式转换 
-void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
+static void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
 {
 	//寄存器写法
 	Gyro_GPIOx -> CRH &= 0XFFFF0FFF;
@@ -41,7 +41,7 @@ void invI2C_IO_Init (void)
 }
 
 //起始信号
-Bool_ClassType invI2C_Start (void)
+static Bool_ClassType invI2C_Start (void)
 {
 	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SDA_W = 1;	
@@ -61,7 +61,7 @@ Bool_ClassType invI2C_Start (void)
 }
 
 //I2C停止信号	  
-void invI2C_Stop (void)
+static void invI2C_Stop (void)
 {
 	GyroI2C_SDAModeTransfer(SDA_Ws);
 	IO_GYI2C_SCL = 0;
@@ -73,7 +73,7 @@ void invI2C_Stop (void)
 }
 
 //I2C等待应答信号
-Bool_ClassType invI2C_WaitAck (void)
+static Bool_ClassType invI2C_WaitAck (void)
 {
 	u8 ucErrTime = 0;
 	
@@ -98,7 +98,7 @@ Bool_ClassType invI2C_WaitAck (void)
 } 
 
 //I2C产生应答/不应答信号
-void invI2C_NoAckorAck (i2cNoAckorAck signal)
+static void invI2C_NoAckorAck (i2cNoAckorAck signal)
 {
 	IO_GYI2C_SCL = 0;
 	GyroI2C_SDAModeTransfer(SDA_Ws);

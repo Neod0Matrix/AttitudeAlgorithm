@@ -22,8 +22,8 @@ void TIM2_usTimeBase_Init (FunctionalState control)
 							TIM_CKD_DIV1, 
 							TIM_CounterMode_Up, 
 							irq_Use, 						
-							0x02, 
-							0x05, 
+							0x01, 
+							0x04, 
 							control);
 }  
 

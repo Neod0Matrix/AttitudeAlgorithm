@@ -9,7 +9,7 @@ EulerAngleStructure eas;
 float MPU_GlobalTemp;
 
 //陀螺仪数据结构体初始化
-void GyroAccelStructureInit (GyroAccelStructure *ga)
+static void GyroAccelStructureInit (GyroAccelStructure *ga)
 {
 	ga -> gx = 0;
 	ga -> gy = 0;
@@ -20,15 +20,76 @@ void GyroAccelStructureInit (GyroAccelStructure *ga)
 }
 
 //欧拉角结构体初始化
-void EulerAngleStructureInit (EulerAngleStructure *ea)
+static void EulerAngleStructureInit (EulerAngleStructure *ea)
 {
 	ea -> pitch = 0.f;
 	ea -> roll = 0.f;
 	ea -> yaw = 0.f;
 }
 
+/**
+  * @brief     Fast inverse square-root, to calculate 1/Sqrt(x)
+  * @param[in] input:x
+  * @retval    1/Sqrt(x)
+  */
+float invSqrt (float x)
+{
+	float halfx = 0.5f * x;
+	float y = x;
+	long i = *(long*) & y;
+	
+	i = 0x5f3759df - (i >> 1);
+	y = *(float*) & i;
+	y *= (1.5f - (halfx * pow(y, 2)));
+	
+	return y;
+}
+
+//方向矩阵辅助转换函数
+static u16 inv_row_2_scale (const signed char *row)
+{
+    u16 b;
+
+    if (row[0] > 0)
+		b = 0;
+    else if (row[0] < 0)
+        b = 4;
+    else if (row[1] > 0)
+        b = 1;
+    else if (row[1] < 0)
+        b = 5;
+    else if (row[2] > 0)
+        b = 2;
+    else if (row[2] < 0)
+        b = 6;
+    else
+        b = 7;      //error
+	
+    return b;
+}
+
+//陀螺仪方向控制
+static u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
+{
+    u16 scalar;
+	/*
+       XYZ  010_001_000 Identity Matrix
+       XZY  001_010_000
+       YXZ  010_000_001
+       YZX  000_010_001
+       ZXY  001_000_010
+       ZYX  000_001_010
+     */
+	
+    scalar = inv_row_2_scale(mtx);
+    scalar |= inv_row_2_scale(mtx + 3) << 3;
+    scalar |= inv_row_2_scale(mtx + 6) << 6;
+
+    return scalar;
+}
+
 //MPU自检测试
-Bool_ClassType run_self_test (void)
+static Bool_ClassType run_self_test (void)
 {
     int result;
     long gyro[3], accel[3];
@@ -56,69 +117,8 @@ Bool_ClassType run_self_test (void)
 		return True;
 }
 
-//方向矩阵辅助转换函数
-u16 inv_row_2_scale (const signed char *row)
-{
-    u16 b;
-
-    if (row[0] > 0)
-		b = 0;
-    else if (row[0] < 0)
-        b = 4;
-    else if (row[1] > 0)
-        b = 1;
-    else if (row[1] < 0)
-        b = 5;
-    else if (row[2] > 0)
-        b = 2;
-    else if (row[2] < 0)
-        b = 6;
-    else
-        b = 7;      //error
-	
-    return b;
-}
-
-/**
-  * @brief     Fast inverse square-root, to calculate 1/Sqrt(x)
-  * @param[in] input:x
-  * @retval    1/Sqrt(x)
-  */
-float invSqrt (float x)
-{
-	float halfx = 0.5f * x;
-	float y = x;
-	long i = *(long*) & y;
-	
-	i = 0x5f3759df - (i >> 1);
-	y = *(float*) & i;
-	y *= (1.5f - (halfx * pow(y, 2)));
-	
-	return y;
-}
-
-//陀螺仪方向控制
-u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
-{
-    u16 scalar;
-	/*
-       XYZ  010_001_000 Identity Matrix
-       XZY  001_010_000
-       YXZ  010_000_001
-       YZX  000_010_001
-       ZXY  001_000_010
-       ZYX  000_001_010
-     */
-	
-    scalar = inv_row_2_scale(mtx);
-    scalar |= inv_row_2_scale(mtx + 3) << 3;
-    scalar |= inv_row_2_scale(mtx + 6) << 6;
-
-    return scalar;
-}
-
 //MPU6050内置DMP初始化
-uint8_t mpu_intrinsic_dmp_init (void)
+static uint8_t mpu_intrinsic_dmp_init (void)
 { 
 	//algorithm matrix
 	static signed char gyro_orientation[9] = {-1, 	0, 	0,
@@ -130,14 +130,14 @@ uint8_t mpu_intrinsic_dmp_init (void)
 	{
 		if (mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL)) 			return 1;
 		if (mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL))		return 2;
-		if (mpu_set_sample_rate(DEFAULT_MPU_HZ))					return 3;
+		if (mpu_set_sample_rate(MPUDataReadFreq))					return 3;
 		if (dmp_load_motion_driver_firmware())						return 4;
 		if (dmp_set_orientation(
 			inv_orientation_matrix_to_scalar(gyro_orientation))) 	return 5;
 		if (dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
 	        DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | 
 			DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL))		return 6;
-		if (dmp_set_fifo_rate(DEFAULT_MPU_HZ))						return 7;
+		if (dmp_set_fifo_rate(MPUDataReadFreq))						return 7;
 		if (run_self_test())										return 8;
 		if (mpu_set_dmp_state(ENABLE))								return 9;
 	}
@@ -145,17 +145,8 @@ uint8_t mpu_intrinsic_dmp_init (void)
 																	return 0;
 }
 
-//初始化前的短暂延时
-void MPU6050_BeforeDelay (void)
-{
-	u16 i, j;
-	
-	for (i = 0; i < 1000; i++)
-		for (j = 0; j < 1000; j++);
-}
-
 //设置MPU6050的数字低通滤波器，lpf:数字低通滤波频率(Hz)
-u8 MPU6050_SetDigitalLowFilter (u16 lpf)
+static u8 MPU6050_SetDigitalLowFilter (u16 lpf)
 {
 	u8 data = 0;
 	
@@ -177,7 +168,7 @@ u8 MPU6050_SetDigitalLowFilter (u16 lpf)
 }
 
 //设置MPU6050的采样率(假定Fs=1KHz)，rate:4~1000(Hz)
-u8 MPU6050_SetSampleRate (u16 rate)
+static u8 MPU6050_SetSampleRate (u16 rate)
 {
 	u8 data;
 	
@@ -201,12 +192,12 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	EulerAngleStructureInit(&eas);
 	invI2C_IO_Init();													//I2C port init
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 0x80);		//reset device
-	delay_ms(150);
+	delay_ms(100);
 	//wake up device
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, MPU6050_CLOCK_INTERNAL);		 
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 3 << 3);	//gyroscope sensor, ±2000dps
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 0 << 3);	//accelerator sensor, ±2g
-	MPU6050_SetSampleRate(DEFAULT_MPU_HZ);								//setting sample rate
+	MPU6050_SetSampleRate(MPUDataReadFreq);								//setting sample rate
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 0x00);		//close all interrupt
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 0x00);		//close device I2C master mode  
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_FIFO_EN, 0x00);			//close FIFO
@@ -217,8 +208,8 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 		//setting CLKSEL, PLL X-axis 
 		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, MPU6050_CLOCK_PLL_XGYRO);
 		//setting accelerator and gyroscope all work		
-		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_2, 0x00);	
-		MPU6050_SetSampleRate(DEFAULT_MPU_HZ);
+		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_2, 0x00);		
+		MPU6050_SetSampleRate(MPUDataReadFreq);
 	}
 	else
 	{
@@ -244,7 +235,7 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 			printf("Once Fatal Return Code: %d, Retrying\r\n", dmp_res);
 			usart1WaitForDataTransfer();		
 		}
-		delay_ms(100);
+		delay_ms(200);
 		dmp_res = mpu_intrinsic_dmp_init();
 	}		
 	/*	MPU Gyroscope init successfully or not is very important.
@@ -256,7 +247,7 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	return False;
 }
 
-//MPU获取陀螺仪加速度计数据
+//MPU获取陀螺仪加速度计数据，这里仅作为API使用
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 {
     u8 i, buf[6] = {0};  
@@ -315,51 +306,44 @@ float MPU6050_ReadTemperature (void)
   */
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 {	
-	u8 more;
+	u8 i, more;
 	long quat[4];										
-	float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	//4 quat calculation bias
+	float qbias[4] = {1.f, 0.f, 0.f, 0.f};			//4 quat calculation bias
 	short gyro[3], accel[3], sensors;
 	unsigned long sensor_timestamp;
 
-	//read dmp once and write into array memory
+	/* 	Gyro and accel data are written to the FIFO by the DMP in chip frame and hardware units.
+	 * 	This behavior is convenient because it keeps the gyro and accel outputs of dmp_read_fifo and mpu_read_fifo consistent.
+	 * 	Unlike gyro and accel, quaternions are written to the FIFO in the body frame, q30.
+	 * 	The orientation is set by the scalar passed to dmp_set_orientation during initialization. 
+	 */
 	if (dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more))
 	{
 		/* here should give fatal read process up. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope Read DMP Fatal\r\n");
 		return 1;
 	}
-	/* Gyro and accel data are written to the FIFO by the DMP in chip frame and hardware units.
-	 * This behavior is convenient because it keeps the gyro and accel outputs of dmp_read_fifo and mpu_read_fifo consistent.
-	**/
-	/*if (sensors & INV_XYZ_GYRO )
-		send_packet(PACKET_TYPE_GYRO, gyro);
-	if (sensors & INV_XYZ_ACCEL)
-		send_packet(PACKET_TYPE_ACCEL, accel); */
-	/* Unlike gyro and accel, quaternions are written to the FIFO in the body frame, q30.
-	 * The orientation is set by the scalar passed to dmp_set_orientation during initialization. 
-	 */
 	if (sensors & INV_WXYZ_QUAT)
 	{    
-		q0 = quat[0] / q30;
-		q1 = quat[1] / q30;
-		q2 = quat[2] / q30;
-		q3 = quat[3] / q30;
+		/* division 2^30 amplify. */
+		for (i = 0; i < 4; i++)
+			qbias[i] = quat[i] / q30;
 		
-		//matrix transfer
-		ea -> pitch = (float)asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3f; 	 
-		ea -> roll = (float)atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3f; 
-		ea -> yaw = (float)atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3f;
-		
-		//real time number calibration
-		RadRangeLimitExcess(ea -> pitch);
-		RadRangeLimitExcess(ea -> roll);
-		RadRangeLimitExcess(ea -> yaw);
+		/* 	4 quats number matrix calculate and data result calibration. */
+		ea -> pitch = (float)asin(-2 * qbias[1] * qbias[3] + 2 * qbias[0] * qbias[2]) * RadTransferDegree; 
+		AngleRangeLimitExcess(ea -> pitch);		
+		ea -> roll = (float)atan2(2 * qbias[2] * qbias[3] + 2 * qbias[0] * qbias[1], 
+			-2 * qbias[1] * qbias[1] - 2 * qbias[2] * qbias[2] + 1) * RadTransferDegree; 
+		AngleRangeLimitExcess(ea -> roll);
+		ea -> yaw = (float)atan2(2 * (qbias[1] * qbias[2] + qbias[0] * qbias[3]), 
+			qbias[0] * qbias[0] + qbias[1] * qbias[1] - qbias[2] * qbias[2] - qbias[3] * qbias[3]) * RadTransferDegree;
+		AngleRangeLimitExcess(ea -> yaw);
 		
 		/* print into com test visual
 		__ShellHeadSymbol__;
 		if (No_Data_Receive && PC_Switch == PC_Enable)
 		{
-			printf("Gyroscope Debug Mode, Euler Angle Print: [Pitch: %.2f | Roll: %.2f | Yaw: %.2f]\r\n", 
+			printf("Euler Angle USART Outputs: [Pitch: %.2f | Roll: %.2f | Yaw: %.2f]\r\n", 
 					ea -> pitch, ea -> roll, ea -> yaw);			
 			usart1WaitForDataTransfer();		
 		}*/

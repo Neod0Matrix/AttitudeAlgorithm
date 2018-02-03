@@ -224,45 +224,37 @@ void OLED_PageAlterCtrl (void)
 	static unsigned long oledFreshcnt = 0u;
 	static Bool_ClassType oledFlushEnable = True;
 	
-	if (pwsf != JBoot)						//仅在初始化完成后生效
+	if (pwsf != JBoot)						
 	{
 		//自动切屏使能控制
 		if (KEY1_NLTrigger)
 		{
 			//反转使能
-			if (oledFlushEnable)				
-				oledFlushEnable = False;	
-			else 					
-				oledFlushEnable = True;
-			oledFreshcnt = 0u;				//扩展时间复位
-			
-			while(KEY1_NLTrigger);			//等待按键释放
+			oledFlushEnable = (oledFlushEnable == True)? False : True;
+			oledFreshcnt = 0u;				
+			while(KEY1_NLTrigger);			
 		}
 		
 		//手动切屏使能控制
 		if (KEY0_NLTrigger)					
 		{
-			oledScreenFlag++;				//切屏
-			if (oledScreenFlag == ScreenPageCount)					
+			if (++oledScreenFlag == ScreenPageCount)					
 				oledScreenFlag = 0u;		//现有屏数复位
-			
-			while(KEY0_NLTrigger);			//等待按键释放
+			while(KEY0_NLTrigger);			
 		}
 		
 		//时间扩展5s自动切屏/按键KEY0手动切屏
 		if (oledFlushEnable)
 		{
-			if (oledFreshcnt == TickDivsIntervalus(PageAlterInterval) - 1 || KEY0_NLTrigger)
+			if (oledFreshcnt++ == TickDivsIntervalus(PageAlterInterval) - 1 
+				|| KEY0_NLTrigger)
 			{
 				oledFreshcnt = 0u;			//扩展时间复位
-				
-				oledScreenFlag++;			//切屏
-				if (oledScreenFlag == ScreenPageCount)					
-					oledScreenFlag = 0u;	//现有屏数复位
-				
-				while(KEY0_NLTrigger);		//等待按键释放
+				//切屏控制
+				if (++oledScreenFlag == ScreenPageCount)					
+					oledScreenFlag = 0u;	
+				while(KEY0_NLTrigger);		
 			}
-			oledFreshcnt++;					//扩展时间累加
 		}
 	}
 }

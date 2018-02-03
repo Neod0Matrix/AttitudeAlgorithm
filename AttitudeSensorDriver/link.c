@@ -107,11 +107,10 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 		OLED_ShowString(strPos(13u), ROW2, (const u8*)".", Font_Size);
 		OLED_ShowNum(strPos(14u), ROW2, ((u16)(tempDisp * 10) % 10), 1u, Font_Size);
 	}
-	
 	OLED_Refresh_Gram();
 }
 
-//MPU实时任务 link到time_base.c TIM2_IRQHandler中断函数中
+//MPU实时任务，link到time_base.c TIM2_IRQHandler中断函数
 void dmpAttitudeAlgorithm_RT (void)
 {
 	/* ARM platform can set static var here, 8051 don't do it. */
@@ -121,12 +120,15 @@ void dmpAttitudeAlgorithm_RT (void)
 		&& Return_Error_Type == Error_Clear && pwsf != JBoot)
 	{
 		runMPUUpdateSem = 0u;
-		/* 	Update once data.
-		 *	This call need more optimize for real-time and jump RT call out.
+		/* 	This call need more optimize for real-time and jump RT call out.
 		 *	For test you can push it here and setting debug mode to check it work elapsed time.
 		 *	You may need to notice register flag symbol change process.
 		**/
-		dmpAttitudeAlgorithm(&eas);													
+		if (!dmpAttitudeAlgorithm(&eas))									
+		{
+			MPU6050_GetGyroAccelOriginData(&gas);					
+			MPU_GlobalTemp = MPU6050_ReadTemperature();				
+		}									
 	}
 }
 

@@ -23,8 +23,8 @@ static void RTC_NVIC_Config (void)
 {
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;					//RTC全局中断
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03;	//先占优先级3
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x04;			//先占优先级4
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;	//先占优先级
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x04;			//子优先级
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;					//使能该通道中断
     NVIC_Init(&NVIC_InitStructure);									//根据NVIC_InitStruct中指定的参数初始化外设NVIC寄存器
 }
@@ -149,7 +149,7 @@ Bool_ClassType Is_Leap_Year (u16 year)
         if (year % 100u == 0u)
         {
             if (year % 400u == 0u) 
-				return True;										//如果以00结尾,还要能被400整除
+				return True;										//如果以00结尾，还要能被400整除
             else 
 				return False;
         }
@@ -175,12 +175,7 @@ Bool_ClassType RTC_Set (u16 syear, u8 smon, u8 sday, u8 hour, u8 min, u8 sec)
     if (syear < 1970u || syear > 2099u) 
 		return True;
     for (t = 1970u; t < syear; t++)									//把所有年份的秒钟相加
-    {
-        if (Is_Leap_Year(t)) 
-			seccount += 31622400u;									//闰年的秒钟数
-        else 
-			seccount += 31536000u;			  						//平年的秒钟数
-    }
+		seccount += (Is_Leap_Year(t) == True)? 31622400u:31536000u;	//闰平年秒钟数转换
     smon -= 1u;
 
     for (t = 0u; t < smon; t++)	 									//把前面月份的秒钟数相加
@@ -198,7 +193,6 @@ Bool_ClassType RTC_Set (u16 syear, u8 smon, u8 sday, u8 hour, u8 min, u8 sec)
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);//使能PWR和BKP外设时钟
     PWR_BackupAccessCmd(ENABLE);									//使能RTC和后备寄存器访问
     RTC_SetCounter(seccount);										//设置RTC计数器的值
-
     RTC_WaitForLastTask();											//等待最近一次对RTC寄存器的写操作完成
     RTC_Get();														//更新时间
 	
@@ -216,8 +210,8 @@ Bool_ClassType RTC_Get (void)
     u32 temp = 0u;
     u16 temp1 = 0u;
     timecount = RTC_GetCounter();
-    temp = timecount / 86400u;   									//得到天数(秒钟数对应的)
 	
+    temp = timecount / 86400u;   									//得到天数(秒钟数对应的)
     if (daycnt != temp)												//超过一天了
     {
         daycnt = temp;
@@ -246,13 +240,15 @@ Bool_ClassType RTC_Get (void)
         {
             if (Is_Leap_Year(calendar.w_year) && temp1 == 1u)		//当年是不是闰年/2月份
             {
-                if (temp >= 29u) temp -= 29u;						//闰年的秒钟数
+                if (temp >= 29u) 
+					temp -= 29u;									
                 else 
 					break;
             }
             else
             {
-                if (temp >= mon_table[temp1]) temp -= mon_table[temp1];//平年
+                if (temp >= mon_table[temp1]) 
+					temp -= mon_table[temp1];
                 else 
 					break;
             }
@@ -290,8 +286,8 @@ u8 RTC_Get_Week (u16 year, u8 month, u8 day)
 
     //所过闰年数只算1900年之后的
     temp2 = yearL + yearL / 4u;
-    temp2 = temp2 % 7u;
-    temp2 = temp2 + day + table_week[month - 1u];
+    temp2 %= 7u;
+    temp2 += (day + table_week[month - 1u]);
     if (yearL % 4u == 0u && month < 3u) temp2--;
 	
     return (temp2 % 7u);
@@ -301,7 +297,7 @@ u8 RTC_Get_Week (u16 year, u8 month, u8 day)
 void RTC_Init_Check (void)
 {
 	//RTC初始化，一定要初始化成功，失败原因：晶振及时钟电路有问题
-    while (RTC_Init() == True)												
+    while (RTC_Init())												
     {
 		//如果第一次检测通过一下则不显示
 		__ShellHeadSymbol__; U1SD("RTC Error\r\n");

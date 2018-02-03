@@ -60,7 +60,7 @@ void Sys_Standby (void)
 //系统进入待机模式
 void Sys_Enter_Standby (void)
 {
-    RCC_APB2PeriphResetCmd(0X01FC, DISABLE);		//复位所有IO口
+    RCC_APB2PeriphResetCmd(0x01fc, DISABLE);		//复位所有IO口
     Sys_Standby();
 }
 
@@ -82,10 +82,12 @@ Bool_ClassType Check_WKUP (void)
 			if (pressTime >= 100u)
 			{
 				pressTime = 0u;						//时间清0
+				
 				return True; 						//按下Ns以上返回True，同时return跳出循环
 			}
 		} 
-		else return False; 							//按下不足N秒返回False，同时return跳出循环
+		else 
+			return False; 							//按下不足N秒返回False，同时return跳出循环
 	}
 }
 
@@ -103,8 +105,8 @@ void WKUP_Init (void)
 							EXTI_Mode_Interrupt, 
 							EXTI_Trigger_Rising, 
 							EXTI0_IRQn, 
-							0x02, 
-							0x05);
+							0x03, 
+							0x02);
 
 	if (Stby_Switch	== Stby_Enable)					//开机待机功能使能
 		if (Check_WKUP() == False) Sys_Standby();    
@@ -118,9 +120,9 @@ void EXTI0_IRQHandler (void)
 	OSIntEnter();    
 #endif
 	
-    EXTI_ClearITPendingBit(WKUP_EXTI_Line); 		//清除中断标志位
     if (Check_WKUP()) 
 		Sys_Enter_Standby();						//WK_UP确认，系统进入待机模式
+	EXTI_ClearITPendingBit(WKUP_EXTI_Line); 		//清除中断标志位
 	
 #if SYSTEM_SUPPORT_OS 								//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 

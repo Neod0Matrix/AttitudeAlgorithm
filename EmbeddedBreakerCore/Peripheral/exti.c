@@ -85,8 +85,9 @@ void EXTI_Config_Init (void)
 						EXTI_Trigger_Rising,
 #endif
 						EXTI15_10_IRQn, 
+						//此处优先级设置很关键，太高会卡死，太低解析容易fatal
 						0x03, 
-						0x01);
+						0x03);
 }
 
 //STEW--PB8
@@ -125,11 +126,17 @@ void EXTI15_10_IRQHandler (void)
 	
 	/*
 		这里读取的是单个信号不是按键，写法有所不同
-		INT触发更新，其触发频率与DEFAULT_MPU_HZ定义有关
+		INT触发更新，其触发频率与MPUDataReadFreq定义有关
+		由于INT中断读取频率在5-10ms左右，蜂鸣器工作一次消耗50ms
+		故需要先判断蜂鸣器的闲置状态
 	*/
-	if (pwsf != JBoot && EXTI_GetITStatus(MPU_INT_EXTI_Line) != RESET)
+	if (pwsf != JBoot && Is_MPUDataTransfer_Finished && Read_Beep_IO != WARNING)
 	{
-		dmpAttitudeAlgorithm(&eas);									//姿态解算					
+		if (!dmpAttitudeAlgorithm(&eas))							//DMP姿态解算		
+		{
+			MPU6050_GetGyroAccelOriginData(&gas);					//MPU六轴原始数据
+			MPU_GlobalTemp = MPU6050_ReadTemperature();				//MPU芯片温度读取
+		}						
 	}
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	

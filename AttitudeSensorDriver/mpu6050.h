@@ -359,31 +359,31 @@
 #define MPU6050_WHO_AM_I_BIT        		6
 #define MPU6050_WHO_AM_I_LENGTH     		6
 
-#define DEFAULT_MPU_HZ  					100				//解析频率
-#define q30  								1073741824.0f 	//内部放大pow(2, 30)倍，输出时需要缩小
+//MPU数据解析频率(建议任务不多时设置为150-200，任务较多设置为50-100)
+#define MPUDataReadFreq  					50				
+//MPU内部数据放大pow(2, 30)倍，输出时需要缩小
+#define q30  								1073741824.0f 	
 
 //判断MPU6050数据转换是否完成
 #define MPU_DataTransferFinishedINTLevel	Bit_RESET		//设置转换完成电平
 #define Is_MPUDataTransfer_Finished 		((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12) \
 											== MPU_DataTransferFinishedINTLevel)? True : False)
 
-//角度极限变换
-#ifndef RadRangeLimitExcess
-#define RadRangeLimitExcess(axis)			axis = (axis < 0)? axis += 360 : axis;
+//欧拉角数据弧度制角度制转换
+#define PI									3.141f
+#define RadTransferDegree					(180.f / PI)	//约57.3
+#ifndef AngleRangeLimitExcess
+#define AngleRangeLimitExcess(axis)			axis = (axis < 0)? axis += 360 : axis;
 #endif
 
 //陀螺仪加速度计结构体
 typedef __packed struct 
 {
-	short gx;
-	short gy;
-	short gz;
-	short ax;
-	short ay;
-	short az;
+	short gx, gy, gz;						//三轴陀螺仪
+	short ax, ay, az;						//三轴加速度计
 } GyroAccelStructure;
 extern GyroAccelStructure gas;
-void GyroAccelStructureInit (GyroAccelStructure *ga);
+static void GyroAccelStructureInit (GyroAccelStructure *ga);
 
 //欧拉角结构体
 typedef __packed struct 
@@ -393,14 +393,14 @@ typedef __packed struct
 	float yaw;								//z轴
 } EulerAngleStructure;
 extern EulerAngleStructure eas;
-void EulerAngleStructureInit (EulerAngleStructure *ea);
+static void EulerAngleStructureInit (EulerAngleStructure *ea);
 
 extern float MPU_GlobalTemp;
 
 //MPU6050操作函数
-u8 MPU6050_SetDigitalLowFilter (u16 lpf);
-u8 MPU6050_SetSampleRate (u16 rate);
-uint8_t mpu_intrinsic_dmp_init (void);
+static u8 MPU6050_SetDigitalLowFilter (u16 lpf);
+static u8 MPU6050_SetSampleRate (u16 rate);
+static uint8_t mpu_intrinsic_dmp_init (void);
 Bool_ClassType GyroscopeTotalComponentInit (void);
 float MPU6050_ReadTemperature (void);
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga);
@@ -409,7 +409,7 @@ void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga);
 float invSqrt (float x);
 static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
-Bool_ClassType run_self_test (void);
+static Bool_ClassType run_self_test (void);
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea);
 
 #endif

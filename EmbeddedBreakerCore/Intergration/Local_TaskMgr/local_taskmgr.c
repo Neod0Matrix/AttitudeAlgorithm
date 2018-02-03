@@ -4,7 +4,7 @@
 //====================================================================================================
 /*
 	本地任务调度管理
-	在任务数量不多的情况下，裸跑比RTOS速度快，
+	在任务数量不多的情况下，裸跑比RTOS速度快
 	在任务数量多占用时长差距大时RTOS性能更好
 */
 
@@ -17,10 +17,6 @@ void prio2TaskBus (void)
 {
 	LVD_EW_Handler();								//输入电压低压监测
 	RTC_DataStorage(calendar);						//RTC时间寄存
-	/*
-		@EmbeddedBreakerCore Extern API Insert
-	*/
-	//MPU6050_GetGyroAccelOriginData(gas);			//MPU原始数据
 #ifdef useRTOSinProject
 	Semaphore_Handler();							//信号量处理
 #endif
@@ -30,10 +26,6 @@ void prio3TaskBus (void)
 {
 	MCU_Temperature_Detector();						//温度监测
 	UIScreen_DisplayHandler();						//UI显示器
-	/*
-		@EmbeddedBreakerCore Extern API Insert
-	*/
-	MPU_GlobalTemp = MPU6050_ReadTemperature();		//MPU温度读取
 }
 
 void prio4TaskBus (void)
@@ -59,7 +51,7 @@ void Streak_TaskRun (void)
 //RTOS调用接口
 void RTOS_TaskMgr (void)
 {
-	ucosiii_TaskMgr();										//ucos
+	ucosiii_TaskMgr();								//ucos
 }
 
 //====================================================================================================
