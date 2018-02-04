@@ -4,18 +4,18 @@
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
 //====================================================================================================
-//模块AttitudeAlgorithm对框架EmbeddBreakerCore的链接
+//模块AttitudeAlgorithm对框架EmbeddedBreakerCore的链接
 //该文件需要添加到stdafx.h内生效
 
 //链接所有AttitudeAlgorithm模块的头文件
-#include <stdint.h>
-#include "inv_i2c.h"
-#include "mpu6050.h"
-#include "inv_mpu_dmp_motion_driver.h"
-#include "dmpkey.h"
+#include <stdint.h>										//标准数据类型限定库
+#include "inv_i2c.h"									//专为MPU设计的I2C库
+//@InvenSense DMP Library Support
+#include "dmpkey.h"										
 #include "dmpmap.h"
+#include "inv_mpu_dmp_motion_driver.h"
 #include "inv_mpu.h"
-#include "filter.h"
+#include "mpu6050.h"									//MPU6050底层驱动及解算
 
 //MCU资源
 #define _MCU_Model_				"STM32F103RET6"			//主控芯片型号
@@ -26,6 +26,7 @@
 //工程声明
 #define _Project_Type_			"SDP"					//工程类型
 #define _Frame_Name_			"EmbeddedBreakerCore"	//架构名称
+#define _Project_Name_			"AttitudeAlgorithm"		//工程名称
 #define _Code_Version_ 			"OS_v0p4_LTE"			//长期演进版
 #define _Laboratory_			"T.WKVER"				//实验室
 #define _Logo_					"Absolute Liberal"		//logo
@@ -62,7 +63,10 @@ extern void U1RSD_example (void);						//串口处理例程封装
 void ModuleAA_UniResConfig (void);
 void ModuleAA_URCMap (void);
 void ModuleAA_urcDebugHandler (u8 ed_status, AHRS_SwitchNbr sw_type);
-void dmpAttitudeAlgorithm_RT (void);
+
+//IMU实时解算
+void TIM3_IMURealTimeWork (FunctionalState control);
+void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag);					
 
 #endif
 

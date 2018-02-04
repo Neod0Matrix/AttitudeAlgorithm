@@ -31,6 +31,10 @@ void bspPeriSysCalls (void)
 	//-------------------------------定时器设置初始化------------------------------------//
 	
 	TIM2_usTimeBase_Init(ENABLE);						//us级公交车定时器2初始化(就是谁都可以蹭个时基的意思)	
+	/*
+		@EmbeddedBreakerCore Extern API Insert
+	*/
+	TIM3_IMURealTimeWork(ENABLE);						//IMU实时任务
 	EXTI_Config_Init();									//外部中断初始化
 	
 	//----------------------------------IO口初始化----------------------------------------//
@@ -57,15 +61,14 @@ void bspPeriSysCalls (void)
 //只对main.c有效 初始化底层硬件 
 static void preSetUpHardware (void)
 {
+	RCC_Configuration(RCCMultipConst);					//@72MHz时钟主频(默认)
 	pwsf = JBoot;										//系统刚启动
 	
 	NVIC_Configuration();								//设置中断优先级分组
 	Universal_Resource_Config();						//统一资源配置器
-	
     bspPeriSysCalls();									//初始化底层函数封装
 	
 	OLED_DisplayInitConst();							//UI初始化
-	
 	Response_Strings();									//与上位机通信的起始标志，表示控制器已初始化完成
 }
 

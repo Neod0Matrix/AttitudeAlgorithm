@@ -26,7 +26,11 @@
 #define __FunnyWord__			"(ಡωಡ)"					//滑稽颜文字
 
 //嵌入式系统版本
-#define __OS_Version__			"uC/OS-III v3p03"		//ucosiii		
+#define __OS_Version__			"uC/OS-III v3p03"		//ucosiii	
+
+//时钟设置
+#define InputOSCFreq			8						//输入晶振频率
+#define RCCMultipConst			(72 / InputOSCFreq)		//倍频系数
 
 /*
 	常用数据类型宏定义本质：

@@ -145,42 +145,55 @@ static uint8_t mpu_intrinsic_dmp_init (void)
 																	return 0;
 }
 
-//设置MPU6050的数字低通滤波器，lpf:数字低通滤波频率(Hz)
+/*
+	设置MPU6050的数字低通滤波器
+	lpf:数字低通滤波频率，一般是采样率的一半
+*/
 static u8 MPU6050_SetDigitalLowFilter (u16 lpf)
 {
-	u8 data = 0;
+	u8 data;
 	
-	if (lpf >= 188)
-		data = 1;
-	else if (lpf >= 98)
-		data = 2;
-	else if (lpf >= 42)
-		data = 3;
-	else if (lpf >= 20)
-		data = 4;
-	else if (lpf >= 10)
-		data = 5;
-	else 
-		data = 6;
+	//数据分段节选
+	if (lpf >= 188)		data = 0x01;
+	else if (lpf >= 98)	data = 0x02;
+	else if (lpf >= 42)	data = 0x03;
+	else if (lpf >= 20)	data = 0x04;
+	else if (lpf >= 10)	data = 0x05;
+	else 				data = 0x06;
 	
 	//设置数字低通滤波器  
 	return invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_CONFIG, data);
 }
 
-//设置MPU6050的采样率(假定Fs=1KHz)，rate:4~1000(Hz)
+//设置MPU6050的采样率
 static u8 MPU6050_SetSampleRate (u16 rate)
 {
-	u8 data;
+	u16 srf;
 	
-	if (rate > 1000)
-		rate = 1000;
-	if (rate < 4) rate = 4;
-	data = 1000 / rate - 1;
+	//数据限位，最大实际200hz
+	srf = rate;
+	if (srf > 200)	srf = 200;
+	if (srf < 4) 	srf = 4;
+	
 	//设置数字低通滤波器
-	data = invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, data);
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, (1000 / srf - 1));
 	
-	//自动设置LPF为采样率的一半
+	//自动设置滤波频率为采样率的一半
  	return MPU6050_SetDigitalLowFilter(rate / 2);	
+}
+
+//MPU6050 INT脚初始化
+void MPU6050_INT_IO_Init (void)
+{
+	//PB12 MPU6050数据读取中断，低电平有效
+	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB,			
+						GPIO_Mode_IPU,									//一般设置成上拉输入					
+						GPIO_Input_Speed,								//无效参数						
+						GPIORemapSettingNULL,							
+						GPIO_Pin_12,					
+						GPIOB,					
+						IHL,											//NI			
+						EBO_Disable);
 }
 
 //初始化陀螺仪设备
@@ -198,14 +211,14 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 3 << 3);	//gyroscope sensor, ±2000dps
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 0 << 3);	//accelerator sensor, ±2g
 	MPU6050_SetSampleRate(MPUDataReadFreq);								//setting sample rate
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 0x00);		//close all interrupt
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 0x00);		//close device I2C master mode  
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_FIFO_EN, 0x00);			//close FIFO
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 0x00);		//setting all interrupt, 0x00 is close
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 0x00);		//setting device I2C master mode, 0x00 is close
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_FIFO_EN, 0x01);			//setting data transfer FIFO, 0x00 is close
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_PIN_CFG, 0x80);		//INT pin low level valid
-	/* read device id. */
+	/* read device id, if success, setting clock. */
 	if (invI2C_ReadDevByte(MPUDEVADDR, MPU6050_RA_WHO_AM_I) == MPUDEVADDR)
 	{
-		//setting CLKSEL, PLL X-axis 
+		//setting CLKSEL, PLL X-axis, default inner 8M, low precision
 		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, MPU6050_CLOCK_PLL_XGYRO);
 		//setting accelerator and gyroscope all work		
 		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_2, 0x00);		
@@ -218,7 +231,10 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 		Sys_Soft_Reset();
 	}
 	
-	/* intrinsic DMP init. */
+	/* 	Intrinsic DMP init. 
+	 * 	MPU Gyroscope init successfully or not is very important, but sometime it may be fatal.
+	 *  It must be finish all of pre-setting init process can into a correct work status.
+	**/
 	__ShellHeadSymbol__; U1SD("MPU Intrinsic DMP Library, Loading...");
 	dmp_res = mpu_intrinsic_dmp_init();
 	while (dmp_res)
@@ -230,18 +246,14 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 			Sys_Soft_Reset();
 		}
 		/* once fatal, get error code and retry. */
+		delay_ms(200);
 		if (No_Data_Receive && PC_Switch == PC_Enable)
 		{
 			printf("Once Fatal Return Code: %d, Retrying\r\n", dmp_res);
 			usart1WaitForDataTransfer();		
 		}
-		delay_ms(200);
 		dmp_res = mpu_intrinsic_dmp_init();
 	}		
-	/*	MPU Gyroscope init successfully or not is very important.
-	 *  It must be finish all of pre-setting init process.
-		can into a correct work status.
-	**/
 	U1SD("Successfully\r\n");	
 	
 	return False;
@@ -301,14 +313,14 @@ float MPU6050_ReadTemperature (void)
 
 /**
   * @brief  Read mpu inner dmp attitude info and calculate it.
-  * @param  None.
+  * @param  *ea: A EulerAngleStructure structure type point.
   * @retval Calculate euler successfully or fatal.
   */
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 {	
 	u8 i, more;
 	long quat[4];										
-	float qbias[4] = {1.f, 0.f, 0.f, 0.f};			//4 quat calculation bias
+	float qbias[4] = {1.f, 0.f, 0.f, 0.f};			
 	short gyro[3], accel[3], sensors;
 	unsigned long sensor_timestamp;
 
@@ -339,14 +351,16 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 			qbias[0] * qbias[0] + qbias[1] * qbias[1] - qbias[2] * qbias[2] - qbias[3] * qbias[3]) * RadTransferDegree;
 		AngleRangeLimitExcess(ea -> yaw);
 		
-		/* print into com test visual
+		/*
+		//print into com test visual
 		__ShellHeadSymbol__;
 		if (No_Data_Receive && PC_Switch == PC_Enable)
 		{
 			printf("Euler Angle USART Outputs: [Pitch: %.2f | Roll: %.2f | Yaw: %.2f]\r\n", 
 					ea -> pitch, ea -> roll, ea -> yaw);			
 			usart1WaitForDataTransfer();		
-		}*/
+		}
+		*/
 	
 		return 0;
 	}

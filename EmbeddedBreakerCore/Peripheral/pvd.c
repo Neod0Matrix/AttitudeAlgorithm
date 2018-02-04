@@ -16,7 +16,6 @@ void PVD_Init_Config (void)
 	EXTI_InitTypeDef EXTI_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 	
-    RCC_Configuration(9);								//配置RCC
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE); //开启PVD时钟
 	
 	//PVD外部中断

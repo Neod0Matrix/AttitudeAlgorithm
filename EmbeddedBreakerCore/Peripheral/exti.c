@@ -65,16 +65,9 @@ void EXTI_Config_Init (void)
 	/*
 		@EmbeddedBreakerCore Extern API Insert
 	*/
-	//PB12 MPU6050数据读取中断，低电平有效
-	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB,			
-						GPIO_Mode_IPU,								//一般设置成上拉输入					
-						GPIO_Input_Speed,							//无效参数						
-						GPIORemapSettingNULL,							
-						GPIO_Pin_12,					
-						GPIOB,					
-						IHL,										//NI			
-						EBO_Disable);
+/*
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			//外部中断，需要使能AFIO时钟
+	MPU6050_INT_IO_Init();
 	ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
 						GPIO_PinSource12, 
 						MPU_INT_EXTI_Line, 
@@ -88,6 +81,7 @@ void EXTI_Config_Init (void)
 						//此处优先级设置很关键，太高会卡死，太低解析容易fatal
 						0x03, 
 						0x03);
+*/
 }
 
 //STEW--PB8
@@ -118,32 +112,29 @@ void EXTI9_5_IRQHandler (void)
 /*
 	@EmbeddedBreakerCore Extern API Insert
 */
+/*
 void EXTI15_10_IRQHandler (void)
 {
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntEnter();    
 #endif	
-	
+	*/
 	/*
 		这里读取的是单个信号不是按键，写法有所不同
 		INT触发更新，其触发频率与MPUDataReadFreq定义有关
 		由于INT中断读取频率在5-10ms左右，蜂鸣器工作一次消耗50ms
 		故需要先判断蜂鸣器的闲置状态
+		这个地方设置不好极易导致程序卡死，务必慎重处理
 	*/
-	if (pwsf != JBoot && Is_MPUDataTransfer_Finished && Read_Beep_IO != WARNING)
-	{
-		if (!dmpAttitudeAlgorithm(&eas))							//DMP姿态解算		
-		{
-			MPU6050_GetGyroAccelOriginData(&gas);					//MPU六轴原始数据
-			MPU_GlobalTemp = MPU6050_ReadTemperature();				//MPU芯片温度读取
-		}						
-	}
+	/*
+	dmpAttitudeAlgorithm_RT(IMUINT_Enable);
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	
 #if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
 	OSIntExit();  											 
 #endif
 }
+*/
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

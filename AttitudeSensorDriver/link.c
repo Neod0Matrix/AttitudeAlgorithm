@@ -110,26 +110,76 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 	OLED_Refresh_Gram();
 }
 
-//MPU实时任务，link到time_base.c TIM2_IRQHandler中断函数
-void dmpAttitudeAlgorithm_RT (void)
+//MPU实时任务
+void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 {
-	/* ARM platform can set static var here, 8051 don't do it. */
-	static u16 runMPUUpdateSem = 0u;			
-					
-	if ((runMPUUpdateSem++ == TickDivsIntervalus(MPURunInterval) - 1) 
-		&& Return_Error_Type == Error_Clear && pwsf != JBoot)
-	{
-		runMPUUpdateSem = 0u;
-		/* 	This call need more optimize for real-time and jump RT call out.
-		 *	For test you can push it here and setting debug mode to check it work elapsed time.
-		 *	You may need to notice register flag symbol change process.
+	/* 	This call need more optimize for real-time and jump RT call out.
+	 *	For test you can push it here and setting debug mode to check it work elapsed time.
+	 *	You may need to notice register flag symbol change process.
+	 *  Once call bell will elapsed 50ms, we must judge bell level status.
+	**/
+	if (pwsf != JBoot && Read_Beep_IO != WARNING 
+		/* 	This flag decide whether INT pin trigger function work. 
+		 *	If call rt-function in extern interrupt service function,
+				then set flag to enable(IMUINT_Enbale), or not set flag
+				to disable(IMUINT_Disable).
 		**/
-		if (!dmpAttitudeAlgorithm(&eas))									
+		&& ((!imi_flag) || Is_MPUDataTransfer_Finished))	
+	{
+		/* first @InvenSense DMP call. */
+		if (!dmpAttitudeAlgorithm(&eas))					
 		{
-			MPU6050_GetGyroAccelOriginData(&gas);					
-			MPU_GlobalTemp = MPU6050_ReadTemperature();				
-		}									
+			/* original chip data read. */
+			MPU6050_GetGyroAccelOriginData(&gas);
+			/* chip inner temperature read. */
+			MPU_GlobalTemp = MPU6050_ReadTemperature();		
+		}
 	}
+}
+
+//注意高级定时器18挂载在APB2总线上，通用定时器2345挂载在APB1总线上
+//TIM3定时时基源
+#define IMURTFreqDivTimer		TIM3
+#define RCC_APB1Periph_TIMERx	RCC_APB1Periph_TIM3			//设置定时器挂载总线
+#define Timerx_IRQn				TIM3_IRQn					//定时器中断
+//依据MPUDataReadFreq设定
+#define imu_TogglePeriod		999u						//定时器自动重装翻转周期
+#define imu_Prescaler			3599u						//定时器分频器	
+
+//初始化定时器3用于MPU的实时任务
+void TIM3_IMURealTimeWork (FunctionalState control)  
+{  
+	ucTimerx_InitSetting(	IMURTFreqDivTimer, 
+							Timerx_IRQn, 
+							RCC_APB1Periph_TIMERx,
+							TIMx_GPIO_Remap_NULL,
+							imu_TogglePeriod, 
+							imu_Prescaler, 
+							TIM_CKD_DIV1, 
+							TIM_CounterMode_Up, 
+							irq_Use, 						
+							0x03, 
+							0x02, 
+							control);
+}  
+
+//定时器3中断服务：IMU实时任务
+void TIM3_IRQHandler (void)  								
+{
+#if SYSTEM_SUPPORT_OS										//OS支持
+	OSIntEnter();
+#endif
+	
+	if (TIM_GetITStatus(IMURTFreqDivTimer, TIM_IT_Update) != RESET)//检查指定的TIM中断发生与否
+	{
+		TIM_ClearITPendingBit(IMURTFreqDivTimer, TIM_IT_Update);//清除TIMx的中断待处理位
+		
+		dmpAttitudeAlgorithm_RT(IMUINT_Disable);
+	}
+	
+#if SYSTEM_SUPPORT_OS										//OS支持
+	OSIntExit();    
+#endif
 }
 
 //====================================================================================================

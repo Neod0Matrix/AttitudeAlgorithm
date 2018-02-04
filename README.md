@@ -8,7 +8,7 @@ Copyright
 Update
 ===============
 	
-	最后更新时间: 2018/02/03pm1700
+	最后更新时间: 2018/02/04pm1819
 
 Project Manual
 ==============
@@ -37,7 +37,7 @@ Use Manual
 	使用前请先打开config.c config.h文件按照注释提示修改系统资源配置
 	之后详细阅读README.md，并且保证自己很清醒
 	根据实际芯片器件选择设置工程宏及编译优化选项
-	define: STM32F10X_HD,USE_STDPERIPH_DRIVER
+	define: STM32F10X_HD(芯片容量),USE_STDPERIPH_DRIVER(使用固件库)
 	Optimize for time, One ELF Section per Function
 	
 Inner IO Map

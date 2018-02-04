@@ -10,7 +10,7 @@
 #define devAddr  					0xD0
 #define MPU6050_ADDRESS_AD0_LOW     0x68 // address pin low (GND), default for InvenSense evaluation board
 #define MPU6050_ADDRESS_AD0_HIGH    0x69 // address pin high (VCC)
-#define MPU6050_DEFAULT_ADDRESS     MPU6050_ADDRESS_AD0_LOW
+#define MPU6050_DEFAULT_ADDRESS     MPU6050_ADDRESS_AD0_LOW //多数模块自动10k电阻下拉，默认为低
 #define MPUDEVADDR					MPU6050_DEFAULT_ADDRESS
 
 #define MPU6050_RA_XG_OFFS_TC       0x00 //[7] PWR_MODE, [6:1] XG_OFFS_TC, [0] OTP_BNK_VLD
@@ -360,9 +360,12 @@
 #define MPU6050_WHO_AM_I_LENGTH     		6
 
 //MPU数据解析频率(建议任务不多时设置为150-200，任务较多设置为50-100)
-#define MPUDataReadFreq  					50				
+#define MPUDataReadFreq  					200				//200Hz最高
 //MPU内部数据放大pow(2, 30)倍，输出时需要缩小
 #define q30  								1073741824.0f 	
+
+//是否使用MPU自带的INT引脚作为解算触发源
+typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Trigger;
 
 //判断MPU6050数据转换是否完成
 #define MPU_DataTransferFinishedINTLevel	Bit_RESET		//设置转换完成电平
@@ -401,6 +404,7 @@ extern float MPU_GlobalTemp;
 static u8 MPU6050_SetDigitalLowFilter (u16 lpf);
 static u8 MPU6050_SetSampleRate (u16 rate);
 static uint8_t mpu_intrinsic_dmp_init (void);
+void MPU6050_INT_IO_Init (void);
 Bool_ClassType GyroscopeTotalComponentInit (void);
 float MPU6050_ReadTemperature (void);
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga);

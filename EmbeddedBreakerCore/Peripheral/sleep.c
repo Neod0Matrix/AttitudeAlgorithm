@@ -20,7 +20,6 @@ void mcu_SleepMode (void)
 void mcu_StopMode (void)
 {
     PWR_EnterSTOPMode(PWR_Regulator_ON, PWR_STOPEntry_WFI);//进入停止模式
-    RCC_Configuration(9);							//配置RCC
 }
 
 //挂起处理

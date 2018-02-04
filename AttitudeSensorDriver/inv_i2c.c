@@ -16,7 +16,7 @@
 //MPU使用delay函数
 static void mpu_delay_us (void)
 {
-	delay_us(2);
+	delay_us(1);										//此处延时的长短决定了I2C通信速率
 }
 
 //陀螺仪I2C SDA 模式转换 
