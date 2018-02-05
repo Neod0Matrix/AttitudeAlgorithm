@@ -8,7 +8,8 @@ Copyright
 Update
 ===============
 	
-	最后更新时间: 2018/02/04pm1819
+	最后更新时间: 2018/02/05pm1324
+	详细更新内容见softlog.txt
 
 Project Manual
 ==============
@@ -36,6 +37,8 @@ Use Manual
 	同一头文件包含头文件：stdafx.h Windows编程标准包含
 	使用前请先打开config.c config.h文件按照注释提示修改系统资源配置
 	之后详细阅读README.md，并且保证自己很清醒
+	托管在Github上的是工程源码，如要使用在目录内添加MDK-ARMProject目录，在其中
+	添加工程配置文件，建议使用Keil或者RealView环境
 	根据实际芯片器件选择设置工程宏及编译优化选项
 	define: STM32F10X_HD(芯片容量),USE_STDPERIPH_DRIVER(使用固件库)
 	Optimize for time, One ELF Section per Function

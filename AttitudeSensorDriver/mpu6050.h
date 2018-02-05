@@ -1,5 +1,4 @@
-#ifndef __MPU6050_H__
-#define __MPU6050_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -359,8 +358,8 @@
 #define MPU6050_WHO_AM_I_BIT        		6
 #define MPU6050_WHO_AM_I_LENGTH     		6
 
-//MPU数据解析频率(建议任务不多时设置为150-200，任务较多设置为50-100)
-#define MPUDataReadFreq  					200				//200Hz最高
+//MPU数据解析频率(建议任务不多时设置为150-200(200Hz最高)，任务较多设置为50-100)
+#define MPUDataReadFreq  					200				
 //MPU内部数据放大pow(2, 30)倍，输出时需要缩小
 #define q30  								1073741824.0f 	
 
@@ -368,13 +367,15 @@
 typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Trigger;
 
 //判断MPU6050数据转换是否完成
+#define IO_MPU_INT							PBin(12)		//MPU芯片INT脚映射
 #define MPU_DataTransferFinishedINTLevel	Bit_RESET		//设置转换完成电平
-#define Is_MPUDataTransfer_Finished 		((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12) \
+#define Is_MPUDataTransfer_Finished 		((IO_MPU_INT \
 											== MPU_DataTransferFinishedINTLevel)? True : False)
 
 //欧拉角数据弧度制角度制转换
 #define PI									3.141f
-#define RadTransferDegree					(180.f / PI)	//约57.3
+#define RadTransferDegree					(180.f / PI)	//约57.3，弧度制转角度制系数
+//负数翻转
 #ifndef AngleRangeLimitExcess
 #define AngleRangeLimitExcess(axis)			axis = (axis < 0)? axis += 360 : axis;
 #endif
@@ -415,8 +416,6 @@ static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
 static Bool_ClassType run_self_test (void);
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea);
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

@@ -1,5 +1,4 @@
-#ifndef __LOW_VOLTAGE__
-#define __LOW_VOLTAGE__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -13,8 +12,6 @@
 
 void LVD_IO_Init (void);										//IO口初始化
 void LVD_EW_Handler (void);										//报警处理
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

@@ -1,10 +1,13 @@
+#pragma once
+#include "stdafx.h"
+//code by </MATRIX>@Neod Anderjon
+//author: Neod Anderjon
+//====================================================================================================
 /*
  $License:
     Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
  $
  */
-#ifndef DMPKEY_H__
-#define DMPKEY_H__
 
 #define KEY_CFG_25                  (0)
 #define KEY_CFG_24                  (KEY_CFG_25 + 1)
@@ -489,6 +492,5 @@ typedef struct {
 #define DINBC4 0xc4
 #define DINBC6 0xc6
 
-
-
-#endif // DMPKEY_H__
+//====================================================================================================
+//code by </MATRIX>@Neod Anderjon

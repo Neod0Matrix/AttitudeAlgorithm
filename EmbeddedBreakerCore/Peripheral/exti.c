@@ -66,7 +66,7 @@ void EXTI_Config_Init (void)
 		@EmbeddedBreakerCore Extern API Insert
 	*/
 /*
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			//外部中断，需要使能AFIO时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			
 	MPU6050_INT_IO_Init();
 	ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
 						GPIO_PinSource12, 
@@ -78,7 +78,6 @@ void EXTI_Config_Init (void)
 						EXTI_Trigger_Rising,
 #endif
 						EXTI15_10_IRQn, 
-						//此处优先级设置很关键，太高会卡死，太低解析容易fatal
 						0x03, 
 						0x03);
 */
@@ -115,22 +114,20 @@ void EXTI9_5_IRQHandler (void)
 /*
 void EXTI15_10_IRQHandler (void)
 {
-#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
+#if SYSTEM_SUPPORT_OS 												
 	OSIntEnter();    
 #endif	
 	*/
-	/*
-		这里读取的是单个信号不是按键，写法有所不同
-		INT触发更新，其触发频率与MPUDataReadFreq定义有关
-		由于INT中断读取频率在5-10ms左右，蜂鸣器工作一次消耗50ms
-		故需要先判断蜂鸣器的闲置状态
-		这个地方设置不好极易导致程序卡死，务必慎重处理
-	*/
+
+	/*	Here read one signal level not a key, handler method is different than last.
+	 *	If you confirm test in external interrupt update dmp, please enable IMUINT_Enable.
+	 *	Setting external interrupt may lead to program dump out, notice it.	
+	**/
 	/*
 	dmpAttitudeAlgorithm_RT(IMUINT_Enable);
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	
-#if SYSTEM_SUPPORT_OS 												//如果SYSTEM_SUPPORT_OS为真，则需要支持OS
+#if SYSTEM_SUPPORT_OS 												
 	OSIntExit();  											 
 #endif
 }

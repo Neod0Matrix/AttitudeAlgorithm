@@ -1,5 +1,4 @@
-#ifndef __MALLOC_H__
-#define __MALLOC_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -46,8 +45,6 @@ void Mem_RequestHandler (float *array, u16 array_width);
 //带参宏代替内存申请
 #ifndef stackOverFlow
 #define stackOverFlow(a)		Mem_RequestHandler((float* )a, Get_Array_Size(a))
-#endif
-
 #endif
 
 //====================================================================================================

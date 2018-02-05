@@ -1,5 +1,4 @@
-#ifndef __ERROR_WARNING_H__
-#define __ERROR_WARNING_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -64,8 +63,6 @@ extern void ManualCtrlEW (void);
 
 #define BUSFAULT				EW_TriggerHandler(Bus_Fault)			//总线错误
 #define BUSFAULT_16				ErrorWarning_Feedback(Bus_Fault)
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

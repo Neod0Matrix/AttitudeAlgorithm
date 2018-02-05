@@ -1,5 +1,4 @@
-#ifndef __I2C_H__
-#define __I2C_H__	
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -27,8 +26,5 @@ void i2c_NAck (void);									//I2C无响应
 void i2c_GPIO_Config (void);							//I2C IO配置
 Bool_ClassType i2c_CheckDevice (uint8_t _Address);		//I2C确认设备是否存在
 
-#endif
-
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon
-

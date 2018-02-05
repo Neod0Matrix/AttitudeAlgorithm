@@ -1,5 +1,4 @@
-#ifndef __ADC_H__
-#define __ADC_H__	
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -38,8 +37,6 @@ u16 adcx_AverageHandler (		ADC_TypeDef* 	adcx,
 															ADC_SamplePeriod, 	\
 															Average_Count, 		\
 															ADC_SampleInterval) * (3.3 / 4096))	
-#endif
-
 #endif
 
 //====================================================================================================

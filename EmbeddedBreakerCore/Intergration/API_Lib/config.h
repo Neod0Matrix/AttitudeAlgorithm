@@ -1,5 +1,4 @@
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -91,8 +90,6 @@ Global_Switch_Nbr;
 extern void Universal_Resource_Config (void);
 void urcMapTable_Print (void);
 extern void pclURC_DebugHandler (void);
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

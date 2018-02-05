@@ -69,8 +69,16 @@
 //UI
 #include "ui.h"											//OLED UI sample
 
-//MotorMotionControlModule链接库
-#include "link.h"
+//链接所有AttitudeAlgorithm模块的头文件
+#include <stdint.h>										//标准数据类型限定库
+#include "inv_i2c.h"									//专为MPU设计的I2C库
+//@InvenSense DMP Library Support
+#include "dmpkey.h"												
+#include "dmpmap.h"
+#include "inv_mpu_dmp_motion_driver.h"
+#include "inv_mpu.h"
+#include "mpu6050.h"									//MPU6050底层驱动及解算
+#include "link.h"										//调用模块链接
 
 //===================================================================================================
 //code by </MATRIX>@Neod Anderjon

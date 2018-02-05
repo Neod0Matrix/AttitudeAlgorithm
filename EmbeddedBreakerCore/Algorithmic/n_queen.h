@@ -1,5 +1,4 @@
-#ifndef __N_QUEEN_H__
-#define __N_QUEEN_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -27,8 +26,6 @@
 #else
 //C版本
 void nQueen_CalculusHandler (void);
-#endif
-
 #endif
 
 //====================================================================================================

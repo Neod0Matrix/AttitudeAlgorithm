@@ -1,5 +1,4 @@
-#ifndef __DMA_H__
-#define	__DMA_H__	   
+#pragma once   
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -33,8 +32,6 @@ void start_OneDMAx_Transfer (DMA_Channel_TypeDef* chx, u8 len);	//开启一次DM
 uint16_t USART_DMA_SendData (uint32_t umax_flag_tcx, DMA_Channel_TypeDef* chx, u8 len);
 void USART1_DMA_printf (void);
 void USART2_DMA_printf (void);
-		   
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

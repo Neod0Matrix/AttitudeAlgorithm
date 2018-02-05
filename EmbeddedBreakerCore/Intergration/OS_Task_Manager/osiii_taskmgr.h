@@ -1,5 +1,4 @@
-#ifndef __OSIII_TASKMGR_H__
-#define __OSIII_TASKMGR_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -51,8 +50,6 @@ void osiiiTaskFuction (		void (*ActualExeFunction)(void),
 							u8* srStr, 
 							u8 srpTime, 
 							u16 dlyTime);
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

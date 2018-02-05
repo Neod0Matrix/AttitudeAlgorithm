@@ -1,5 +1,4 @@
-#ifndef __MAIN_H__
-#define __MAIN_H__									
+#pragma once							
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -52,8 +51,6 @@ void bspPeriSysCalls (void);							//初始化函数封装，好让做的工作�
 static void preSetUpHardware (void);					//开始进入任务前的准备工作
 static void stackTaskManager (void);					//任务管理栈
 int main (int argc, char *argv[], char *envp[]);		
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

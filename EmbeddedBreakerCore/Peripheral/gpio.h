@@ -1,5 +1,4 @@
-#ifndef __GPIO_H__
-#define __GPIO_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -23,8 +22,6 @@ void ucGPIO_Config_Init (	uint32_t 			rcc_axbx_gpiox,		//RCC时钟总线
 							GPIO_TypeDef* 		gpiox,				//GPIO总线
 							Init_LevelStatus	ils_flag,			//初始化高低电平
 							ExternBoardOutput	ebo_flag);			//是否外接输出到板子上
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

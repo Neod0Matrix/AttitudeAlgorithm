@@ -143,8 +143,8 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 #define RCC_APB1Periph_TIMERx	RCC_APB1Periph_TIM3			//设置定时器挂载总线
 #define Timerx_IRQn				TIM3_IRQn					//定时器中断
 //依据MPUDataReadFreq设定
-#define imu_TogglePeriod		999u						//定时器自动重装翻转周期
-#define imu_Prescaler			3599u						//定时器分频器	
+#define imu_TogglePeriod		9999u						//定时器自动重装翻转周期
+#define imu_Prescaler			359u						//定时器分频器	
 
 //初始化定时器3用于MPU的实时任务
 void TIM3_IMURealTimeWork (FunctionalState control)  
@@ -159,7 +159,7 @@ void TIM3_IMURealTimeWork (FunctionalState control)
 							TIM_CounterMode_Up, 
 							irq_Use, 						
 							0x03, 
-							0x02, 
+							0x05, 
 							control);
 }  
 

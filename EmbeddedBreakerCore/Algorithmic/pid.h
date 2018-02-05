@@ -1,5 +1,4 @@
-#ifndef __PID_H__
-#define __PID_H__	
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -39,8 +38,6 @@ float pidFma_IncreCalcu (
 void PID_Test (void);				//摆动测试
 float motorPID_DebugFreq (u16 input_freq);//频率pid
 float motorPID_DebugDis (u16 input_dis);//行距pid
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

@@ -1,5 +1,4 @@
-#ifndef _INV_MPU_DMP_MOTION_DRIVER_H_
-#define _INV_MPU_DMP_MOTION_DRIVER_H_
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -96,8 +95,6 @@ int dmp_enable_gyro_cal(unsigned char enable);
  */
 int dmp_read_fifo(short *gyro, short *accel, long *quat,
     unsigned long *timestamp, short *sensors, unsigned char *more);
-
-#endif  
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

@@ -1,5 +1,4 @@
-#ifndef __SLEEP_H__
-#define __SLEEP_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -18,8 +17,6 @@ Bool_ClassType Check_WKUP(void);  				//检测WKUP脚的信号
 void Sys_Standby (void);						//系统待命
 void Sys_Enter_Standby (void);					//系统待机
 void WKUP_Init(void); 							//PA0 WKUP唤醒初始化
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

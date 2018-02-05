@@ -1,5 +1,4 @@
-#ifndef __KEY_H__
-#define __KEY_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -43,8 +42,6 @@ KeyBoard_MapTable KEY_Scan (Input_LoogPress mode);  						//按键扫描函数
 //STEW
 #define STEW_NLTrigger			(KEY_Scan(NSLP) == STEW_PRES)
 #define STEW_LTrigger			(KEY_Scan(SLP) == STEW_PRES)
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

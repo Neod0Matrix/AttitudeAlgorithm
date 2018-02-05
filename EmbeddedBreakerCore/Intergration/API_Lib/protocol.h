@@ -1,5 +1,4 @@
-#ifndef __PROTOCOL_H__
-#define __PROTOCOL_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -79,8 +78,6 @@ extern void orderExecuteFinished (void);				//指令执行结束
 void CommunicationTest (void);							//通信测试
 extern void Response_Strings (void);					//通信起始标志
 extern void OrderResponse_Handler (void);				//指令响应器
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

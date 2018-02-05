@@ -1,5 +1,4 @@
-#ifndef __LED_H__
-#define __LED_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -62,8 +61,6 @@ extern void BlinkLED_StatusCtrl (void);
 void BreathPara_Init (BreathPWMGroup *led_nbr, u32 iv);
 void BreathPWMProduce (LEDGroupNbr nbr, BreathPWMGroup *led_nbr);
 extern void BreathLEDGroupCall (void);
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

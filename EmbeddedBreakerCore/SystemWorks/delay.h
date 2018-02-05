@@ -1,5 +1,4 @@
-#ifndef __DELAY_H__
-#define __DELAY_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -37,8 +36,6 @@ void delay_ms (u16 nms);
 //普通使用
 void delay_us (u32 nus);
 void delay_ms (u32 nms);
-#endif
-
 #endif
 
 //====================================================================================================

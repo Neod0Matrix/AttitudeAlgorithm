@@ -1,5 +1,4 @@
-#ifndef __INV_I2C_H__
-#define __INV_I2C_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -25,8 +24,6 @@ void invI2C_SendByte (u8 txd);
 u8 invI2C_ReadByte (i2cNoAckorAck signal);
 u8 invI2C_ReadDevByte (u8 dev, u8 reg);
 Bool_ClassType invI2C_WriteDevByte (u8 dev, u8 reg, u8 data);
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

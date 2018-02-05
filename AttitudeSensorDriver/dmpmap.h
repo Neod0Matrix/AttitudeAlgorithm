@@ -1,10 +1,13 @@
+#pragma once
+#include "stdafx.h"
+//code by </MATRIX>@Neod Anderjon
+//author: Neod Anderjon
+//====================================================================================================
 /*
  $License:
     Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
  $
  */
-#ifndef DMPMAP_H
-#define DMPMAP_H
 
 #ifdef __cplusplus
 extern "C"
@@ -261,4 +264,6 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif // DMPMAP_H
+
+//====================================================================================================
+//code by </MATRIX>@Neod Anderjon

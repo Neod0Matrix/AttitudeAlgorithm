@@ -1,5 +1,4 @@
-#ifndef __OLED_H__
-#define __OLED_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -58,8 +57,6 @@ void OLED_ShowString (u8 x, u8 y, const u8 *p, u8 size);
 void OLED_ShowTime (u8 x, u8 y, u32 num, u8 size);
 void OLED_CmdSetMode (void);			//指令设置OLED显示模式
 void OLED_Init (void);					//初始化SSD1300
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

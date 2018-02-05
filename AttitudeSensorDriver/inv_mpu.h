@@ -1,5 +1,4 @@
-#ifndef __INV_MPU_H__
-#define __INV_MPU_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -127,8 +126,6 @@ int mpu_read_reg(unsigned char reg, unsigned char *data);
 int mpu_run_self_test(long *gyro, long *accel);
 int mpu_register_tap_cb(void (*func)(unsigned char, unsigned char));
 void mget_ms(unsigned long *time);
-
-#endif  /* #ifndef _INV_MPU_H_ */
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

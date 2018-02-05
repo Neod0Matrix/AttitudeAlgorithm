@@ -1,5 +1,4 @@
-#ifndef __UCTIMER_H__
-#define __UCTIMER_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -35,8 +34,6 @@ extern void ucTimerx_InitSetting (	TIM_TypeDef 		*timx,			//定时器编号
 									uint8_t 			pp,				//抢占优先级
 									uint8_t 			sp,				//子优先级
 									FunctionalState 	control);  		//使能控制
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

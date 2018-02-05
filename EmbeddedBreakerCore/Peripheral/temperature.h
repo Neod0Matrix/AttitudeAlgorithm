@@ -1,5 +1,4 @@
-#ifndef __TEMPERATURE_H__
-#define __TEMPERATURE_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -19,8 +18,6 @@ extern float globalMCU_Temperature;
 
 void adcInnerTemperature_Init (void); 				//ADC通道初始化
 float MCU_Temperature_Detector (void);				//计算出温度值
-
-#endif 
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

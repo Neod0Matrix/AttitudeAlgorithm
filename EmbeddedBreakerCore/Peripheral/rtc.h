@@ -1,5 +1,4 @@
-#ifndef __RTC_H__
-#define __RTC_H__	
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -40,8 +39,6 @@ Bool_ClassType RTC_Set (u16 syear, u8 smon, u8 sday, u8 hour, u8 min, u8 sec);//
 void RTC_DataStorage (_calendar_obj rtc);		//RTC数据寄存
 void RTC_Init_Check (void);						//初始化检查
 void RTC_ReqOrderHandler (void);				//打印RTC时间
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

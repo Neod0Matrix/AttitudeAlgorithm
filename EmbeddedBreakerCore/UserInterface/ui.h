@@ -1,5 +1,4 @@
-#ifndef __UI_H__
-#define __UI_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -31,8 +30,6 @@ void OLED_Display_RTC (void);			//显示RTC时间
 void OLED_StatusDetector (void);		//OLED状态显示检测
 void OLED_PageAlterCtrl (void);
 void UIScreen_DisplayHandler (void);
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

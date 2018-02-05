@@ -1,5 +1,4 @@
-#ifndef __SYS_H__
-#define __SYS_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -78,8 +77,6 @@ void MSR_MSP (u32 addr);									//设置堆栈地址
 void Sys_Soft_Reset (void);									//系统软件复位
 void NVIC_Configuration (void);								//NVIC配置
 void RCC_Configuration (uint32_t pll);						//RCC配置
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

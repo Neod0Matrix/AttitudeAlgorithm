@@ -1,5 +1,4 @@
-#ifndef __TIME_BASE_H__
-#define __TIME_BASE_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -16,8 +15,6 @@
 #endif
 
 void TIM2_usTimeBase_Init (FunctionalState control);
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

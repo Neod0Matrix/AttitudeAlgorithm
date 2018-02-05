@@ -1,5 +1,4 @@
-#ifndef __BEEP_H__
-#define __BEEP_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -18,8 +17,6 @@ typedef enum {WARNING = 1, SLIENCE = !WARNING} Beep_Status;	//定义enum型做�
 #define Beep_Once		{Beep_On; delay_ms(50); Beep_Off;}	//蜂鸣器哔一下
 
 void Beep_IO_Init (void);									//蜂鸣器IO口初始化
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

@@ -1,5 +1,4 @@
-#ifndef __USART1_H__
-#define __USART1_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -37,8 +36,6 @@ extern void usart1WaitForDataTransfer (void);			//等待数据发送完毕
 //受带参宏限制，只能纯粹的字符串打印
 #ifndef U1SD
 #define U1SD(option_str) 	{if (SendDataCondition) {printf(option_str); usart1WaitForDataTransfer();}}
-#endif
-
 #endif
 
 //====================================================================================================

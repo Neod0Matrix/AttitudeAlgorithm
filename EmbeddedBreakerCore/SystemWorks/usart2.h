@@ -1,5 +1,4 @@
-#ifndef __USART2_H__
-#define __USART2_H__	
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -24,8 +23,6 @@ void TIM4_Switch (FunctionalState status);				//定时器4开关
 void TIM4_AuxUSART2_Init (void);						//初始化定时器4
 
 extern void usart2WaitForDataTransfer (void);			//等待数据发送完毕
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

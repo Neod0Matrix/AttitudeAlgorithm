@@ -1,5 +1,4 @@
-#ifndef __LOCAL_TASKMGR_H__
-#define __LOCAL_TASKMGR_H__
+#pragma once
 #include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
@@ -20,8 +19,6 @@ extern void prio3TaskBus (void);
 extern void prio4TaskBus (void);
 extern void Streak_TaskRun (void);							//不使用任务管理器执行			
 extern void RTOS_TaskMgr (void);							//调用RTOS
-
-#endif
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon
