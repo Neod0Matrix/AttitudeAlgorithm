@@ -6,7 +6,7 @@
 
 GyroAccelStructure gas;
 EulerAngleStructure eas;
-float MPU_GlobalTemp;
+volatile float MPU_GlobalTemp;
 
 //陀螺仪数据结构体初始化
 static void GyroAccelStructureInit (GyroAccelStructure *ga)
@@ -121,7 +121,7 @@ static Bool_ClassType run_self_test (void)
 static uint8_t mpu_intrinsic_dmp_init (void)
 { 
 	//algorithm matrix
-	static signed char gyro_orientation[9] = {-1, 	0, 	0,
+	signed char gyro_orientation[9] = {-1, 	0, 	0,
 										0, 	-1, 0,
 										0, 	0, 	1};
 	
@@ -147,7 +147,7 @@ static uint8_t mpu_intrinsic_dmp_init (void)
 
 /*
 	设置MPU6050的数字低通滤波器
-	lpf:数字低通滤波频率，一般是采样率的一半
+	lpf: 数字低通滤波频率，一般是采样率的一半
 */
 static u8 MPU6050_SetDigitalLowFilter (u16 lpf)
 {
@@ -174,9 +174,8 @@ static u8 MPU6050_SetSampleRate (u16 rate)
 	srf = rate;
 	if (srf > 200)	srf = 200;
 	if (srf < 4) 	srf = 4;
-	
 	//设置数字低通滤波器
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, (1000 / srf - 1));
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, (u8)(1000 / srf - 1));
 	
 	//自动设置滤波频率为采样率的一半
  	return MPU6050_SetDigitalLowFilter(rate / 2);	
@@ -185,14 +184,14 @@ static u8 MPU6050_SetSampleRate (u16 rate)
 //MPU6050 INT脚初始化
 void MPU6050_INT_IO_Init (void)
 {
-	//PB12 MPU6050数据读取中断，低电平有效
+	//PB12 MPU6050数据读取中断INT引脚，设置为低电平触发
 	ucGPIO_Config_Init (RCC_APB2Periph_GPIOB,			
 						GPIO_Mode_IPU,									//一般设置成上拉输入					
 						GPIO_Input_Speed,								//无效参数						
 						GPIORemapSettingNULL,							
 						GPIO_Pin_12,					
 						GPIOB,					
-						IHL,											//NI			
+						IHL,													
 						EBO_Disable);
 }
 
@@ -226,7 +225,7 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	}
 	else
 	{
-		/* device address read fatal, can't build valid link, soft restart. */
+		/* device address read fatal, can't build valid link, directly software restart. */
 		__ShellHeadSymbol__; U1SD("MPU Read Device Address Fatal, Restarting\r\n");
 		Sys_Soft_Reset();
 	}
@@ -239,19 +238,20 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	dmp_res = mpu_intrinsic_dmp_init();
 	while (dmp_res)
 	{
-		/* retry count more than setting value, soft reset. */
+		/* retry count more than setting value, software reset. */
 		if (i++ == 5)
 		{
+			i = 0;
 			U1SD("More Fatal, Restarting\r\n");
 			Sys_Soft_Reset();
 		}
 		/* once fatal, get error code and retry. */
-		delay_ms(200);
 		if (No_Data_Receive && PC_Switch == PC_Enable)
 		{
 			printf("Once Fatal Return Code: %d, Retrying\r\n", dmp_res);
 			usart1WaitForDataTransfer();		
 		}
+		delay_ms(200);
 		dmp_res = mpu_intrinsic_dmp_init();
 	}		
 	U1SD("Successfully\r\n");	
@@ -259,7 +259,7 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	return False;
 }
 
-//MPU获取陀螺仪加速度计数据，这里仅作为API使用
+//MPU获取陀螺仪加速度计数据
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 {
     u8 i, buf[6] = {0};  
@@ -294,13 +294,13 @@ void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 float MPU6050_ReadTemperature (void)
 {	
 	u8 buf[2]; 
-    short raw;
-	float temp;
+    volatile short raw;
+	volatile float temp;
 	
 	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, buf); 
     raw = ((u16)buf[0] << 8) | buf[1];  
 	//here transfer to degree celsius
-    temp = 36.53 + ((double)raw) / 340; 
+    temp = 36.53f + ((double)raw) / 340.f; 
 	/* print test visual 
 	if (No_Data_Receive && PC_Switch == PC_Enable)
 	{
@@ -319,16 +319,17 @@ float MPU6050_ReadTemperature (void)
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 {	
 	u8 i, more;
-	long quat[4];										
-	float qbias[4] = {1.f, 0.f, 0.f, 0.f};			
+	long quat[4];											
 	short gyro[3], accel[3], sensors;
 	unsigned long sensor_timestamp;
+	volatile float qbias[4] = {1.f, 0.f, 0.f, 0.f};		
 
 	/* 	Gyro and accel data are written to the FIFO by the DMP in chip frame and hardware units.
 	 * 	This behavior is convenient because it keeps the gyro and accel outputs of dmp_read_fifo and mpu_read_fifo consistent.
 	 * 	Unlike gyro and accel, quaternions are written to the FIFO in the body frame, q30.
 	 * 	The orientation is set by the scalar passed to dmp_set_orientation during initialization. 
-	 */
+	 * 	This function run result directly calculate result, we need to avoid the execution is interrupted.
+	**/
 	if (dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more))
 	{
 		/* here should give fatal read process up. */
@@ -342,11 +343,14 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 			qbias[i] = quat[i] / q30;
 		
 		/* 	4 quats number matrix calculate and data result calibration. */
+		/* -pi/2<=pitch<=pi/2. */
 		ea -> pitch = (float)asin(-2 * qbias[1] * qbias[3] + 2 * qbias[0] * qbias[2]) * RadTransferDegree; 
 		AngleRangeLimitExcess(ea -> pitch);		
+		/* -pi<=roll<=pi. */
 		ea -> roll = (float)atan2(2 * qbias[2] * qbias[3] + 2 * qbias[0] * qbias[1], 
 			-2 * qbias[1] * qbias[1] - 2 * qbias[2] * qbias[2] + 1) * RadTransferDegree; 
 		AngleRangeLimitExcess(ea -> roll);
+		/* -pi<=yaw<=pi. */
 		ea -> yaw = (float)atan2(2 * (qbias[1] * qbias[2] + qbias[0] * qbias[3]), 
 			qbias[0] * qbias[0] + qbias[1] * qbias[1] - qbias[2] * qbias[2] - qbias[3] * qbias[3]) * RadTransferDegree;
 		AngleRangeLimitExcess(ea -> yaw);

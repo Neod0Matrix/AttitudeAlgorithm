@@ -31,12 +31,14 @@ static void GyroI2C_SDAModeTransfer (i2c_SDA_RW_Switcher sta)
 void invI2C_IO_Init (void)
 {			
 	ucGPIO_Config_Init (GyroAPBx_RCCBus,			
-						GPIO_Mode_Out_PP,			
+						//若模块本身集成I2C port上拉则初始化为开漏
+						GPIO_Mode_Out_OD,				
 						GPIO_Speed_50MHz,						
 						GPIORemapSettingNULL,		
 						Gyro_SCL_Pin | Gyro_SDA_Pin,					
-						Gyro_GPIOx,				
-						IHL,							//初始拉高	
+						Gyro_GPIOx,			
+						//初始拉高	
+						IHL,							
 						EBO_Disable);
 }
 

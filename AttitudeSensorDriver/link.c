@@ -157,9 +157,10 @@ void TIM3_IMURealTimeWork (FunctionalState control)
 							imu_Prescaler, 
 							TIM_CKD_DIV1, 
 							TIM_CounterMode_Up, 
-							irq_Use, 						
+							irq_Use, 	
+							//避免陀螺仪解算过程被打断
 							0x03, 
-							0x05, 
+							0x06, 
 							control);
 }  
 
@@ -174,6 +175,7 @@ void TIM3_IRQHandler (void)
 	{
 		TIM_ClearITPendingBit(IMURTFreqDivTimer, TIM_IT_Update);//清除TIMx的中断待处理位
 		
+		//IMUINT_Disable选择不读取INT脚状态
 		dmpAttitudeAlgorithm_RT(IMUINT_Disable);
 	}
 	

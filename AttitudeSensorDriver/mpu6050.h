@@ -380,11 +380,14 @@ typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Tri
 #define AngleRangeLimitExcess(axis)			axis = (axis < 0)? axis += 360 : axis;
 #endif
 
+/* 	I2C read data process will lead to data change quickly, 
+	use volatile to pause compiler optimize member variable. 
+**/
 //陀螺仪加速度计结构体
 typedef __packed struct 
 {
-	short gx, gy, gz;						//三轴陀螺仪
-	short ax, ay, az;						//三轴加速度计
+	volatile short gx, gy, gz;						//三轴陀螺仪
+	volatile short ax, ay, az;						//三轴加速度计
 } GyroAccelStructure;
 extern GyroAccelStructure gas;
 static void GyroAccelStructureInit (GyroAccelStructure *ga);
@@ -392,14 +395,14 @@ static void GyroAccelStructureInit (GyroAccelStructure *ga);
 //欧拉角结构体
 typedef __packed struct 
 {
-	float pitch;							//x轴
-	float roll;								//y轴
-	float yaw;								//z轴
+	volatile float pitch;							//x轴
+	volatile float roll;							//y轴
+	volatile float yaw;								//z轴
 } EulerAngleStructure;
 extern EulerAngleStructure eas;
 static void EulerAngleStructureInit (EulerAngleStructure *ea);
 
-extern float MPU_GlobalTemp;
+extern volatile float MPU_GlobalTemp;
 
 //MPU6050操作函数
 static u8 MPU6050_SetDigitalLowFilter (u16 lpf);
