@@ -419,6 +419,9 @@ static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
 static Bool_ClassType run_self_test (void);
 uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea);
+void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag);					
+void OLED_DisplayAA (EulerAngleStructure *ea);
+void TIM3_IMURealTimeWork (FunctionalState control);
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

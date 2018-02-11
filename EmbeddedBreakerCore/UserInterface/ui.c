@@ -10,11 +10,19 @@ u8 oledScreenFlag = 2u;
 
 //-----------------------------------常量处理-------------------------------------->
 
+//OLED睡眠状态显示
+void OLED_SleepStaticDisplay (void)
+{
+	OLED_ShowString(strPos(0u), ROW1, (const u8*)"System  Suspend", Font_Size);	
+	OLED_ShowString(strPos(0u), ROW2, (const u8*)"InterruptAwaken", Font_Size);	
+	OLED_Refresh_Gram();
+}
+
 //OLED常量第零屏
 void OLED_ScreenP0_Const (void)
 {	
-	OLED_ShowString(strPos(1u), ROW1, (const u8*)"EmbeddedBreake", Font_Size);	
-	OLED_ShowString(strPos(1u), ROW2, (const u8*)"DevelopCoreKit", Font_Size);	
+	OLED_ShowString(strPos(0u), ROW1, (const u8*)"EmbeddedBreaker", Font_Size);	
+	OLED_ShowString(strPos(0u), ROW2, (const u8*)"DevelopCoreKits", Font_Size);	
 	OLED_Refresh_Gram();
 }
 
@@ -99,11 +107,13 @@ void OLED_DisplayInitConst (void)
 {
 	if (OLED_Switch == OLED_Enable)
 	{
-		/*
-			@EmbeddedBreakerCore Extern API Insert
-		*/
-		//OLED_ScreenP0_Const();	
-		OLED_ScreenP4_Const();
+		if (MOE_Switch == MOE_Disable)
+			OLED_ScreenP0_Const();	
+		else
+			/*
+				@EmbeddedBreakerCore Extern API Insert
+			*/
+			OLED_ScreenModules_Const();
 		delay_ms(300);						//logo延迟
 		OLED_Clear();						//擦除原先的画面
 		OLED_ScreenP1_Const();	
@@ -224,37 +234,45 @@ void OLED_PageAlterCtrl (void)
 	static unsigned long oledFreshcnt = 0u;
 	static Bool_ClassType oledFlushEnable = True;
 	
-	if (pwsf != JBoot)						
+	if (pwsf != JBoot && globalSleepflag == SysOrdWork)						
 	{
 		//自动切屏使能控制
 		if (KEY1_NLTrigger)
 		{
 			//反转使能
-			oledFlushEnable = (oledFlushEnable == True)? False : True;
-			oledFreshcnt = 0u;				
-			while(KEY1_NLTrigger);			
+			if (oledFlushEnable)				
+				oledFlushEnable = False;	
+			else 					
+				oledFlushEnable = True;
+			oledFreshcnt = 0u;				//扩展时间复位
+			
+			while(KEY1_NLTrigger);			//等待按键释放
 		}
 		
 		//手动切屏使能控制
 		if (KEY0_NLTrigger)					
 		{
-			if (++oledScreenFlag == ScreenPageCount)					
+			oledScreenFlag++;				//切屏
+			if (oledScreenFlag == ScreenPageCount)					
 				oledScreenFlag = 0u;		//现有屏数复位
-			while(KEY0_NLTrigger);			
+			
+			while(KEY0_NLTrigger);			//等待按键释放
 		}
 		
 		//时间扩展5s自动切屏/按键KEY0手动切屏
 		if (oledFlushEnable)
 		{
-			if (oledFreshcnt++ == TickDivsIntervalus(PageAlterInterval) - 1 
-				|| KEY0_NLTrigger)
+			if (oledFreshcnt == TickDivsIntervalus(PageAlterInterval) - 1 || KEY0_NLTrigger)
 			{
 				oledFreshcnt = 0u;			//扩展时间复位
-				//切屏控制
-				if (++oledScreenFlag == ScreenPageCount)					
-					oledScreenFlag = 0u;	
-				while(KEY0_NLTrigger);		
+				
+				oledScreenFlag++;			//切屏
+				if (oledScreenFlag == ScreenPageCount)					
+					oledScreenFlag = 0u;	//现有屏数复位
+				
+				while(KEY0_NLTrigger);		//等待按键释放
 			}
+			oledFreshcnt++;					//扩展时间累加
 		}
 	}
 }
@@ -277,11 +295,13 @@ void UIScreen_DisplayHandler (void)
 		switch (pageUpdate)
 		{
 		case 0: 
-			/*
-				@EmbeddedBreakerCore Extern API Insert
-			*/
-			//OLED_ScreenP0_Const(); 
-			OLED_ScreenP4_Const(); 
+			if (MOE_Switch == MOE_Disable)
+				OLED_ScreenP0_Const();	
+			else
+				/*
+					@EmbeddedBreakerCore Extern API Insert
+				*/
+				OLED_ScreenModules_Const();
 			break;
 		case 1: 
 			OLED_ScreenP1_Const();
@@ -293,13 +313,13 @@ void UIScreen_DisplayHandler (void)
 		case 3:
 			OLED_ScreenP3_Const();
 			OLED_StatusDetector();	
-			break;
-		
+			break;	
 		/*
 			@EmbeddedBreakerCore Extern API Insert
 		*/
 		case 4:
-			OLED_DisplayAA(&eas);
+			if (MOE_Switch == MOE_Enable)
+				OLED_DisplayModules();
 			break;
 		}
 	}

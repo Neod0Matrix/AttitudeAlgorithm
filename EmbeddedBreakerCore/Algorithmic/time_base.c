@@ -22,8 +22,8 @@ void TIM2_usTimeBase_Init (FunctionalState control)
 							TIM_CKD_DIV1, 
 							TIM_CounterMode_Up, 
 							irq_Use, 						
-							0x01, 
-							0x04, 
+							0x02, 
+							0x05, 
 							control);
 }  
 
@@ -41,6 +41,11 @@ void TIM2_IRQHandler (void)
 		BlinkLED_StatusCtrl();								//闪烁LED动作处理
 		OLED_PageAlterCtrl();								//OLED切屏控制
 		BreathLEDGroupCall();								//呼吸灯动作处理
+		
+		/*
+			@EmbeddedBreakerCore Extern API Insert
+		*/
+		Modules_InterruptTask();							//模块链接
 	}
 	
 #if SYSTEM_SUPPORT_OS										//OS支持

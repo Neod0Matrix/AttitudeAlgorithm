@@ -13,6 +13,7 @@ C文件标准：
 H文件标准：
 
 #pragma once
+#include "stdafx.h"
 //code by </MATRIX>@Neod Anderjon
 //author: Neod Anderjon
 //====================================================================================================
