@@ -8,7 +8,7 @@ Copyright
 Update
 ===============
 
-	最后更新时间: 2018/02/11am1200
+	最后更新时间: 2018/02/11pm1835
 	详细更新内容见softlog.txt
 
 Project Manual
@@ -21,7 +21,7 @@ Project Manual
 	主控MCU：		STM32F103RET6
 	芯片资源：		64脚芯片 256k flash 64k SRAM
 	嵌入式系统：	μC/OS-III v3.03
-	
+
 	Frame name: 	EmbeddedBreakerCore
 	Developer: 		Neod Anderjon 
 	Organization: 	</MATRIX>
@@ -29,7 +29,7 @@ Project Manual
 	OS_Version: 	μC/OS-III v3.03
 	FWLib_Verson: 	v3.5
 	Project_Verson: OS_v0p5_LTE 长期演进版(什么时候TMD才能跑出个stable来啊)_(:з」∠)_ _(┐「ε:)_
-
+	
 Use Manual
 ===============
 
@@ -44,7 +44,7 @@ Use Manual
 	所有的模块链接到框架里的函数和设置项都在Modules/link.*里
 	默认不开启OS，如需要修改config.*选项，并注意设置相应的任务特性
 	请尽量不要修该框架内除link.*，config.*以外的文件内容
-
+	
 Inner IO Map
 ===============
 
@@ -68,7 +68,7 @@ Inner IO Map
 	PA13 --- SWDIO		I
 	PA14 --- SWCLK
 	PA15 --- KEY1		I	
-	
+
 	PB0/PA2  
 	PB1/PA3  
 	PB2 ----
@@ -85,7 +85,7 @@ Inner IO Map
 	PB13 --- OLED_SCL
 	PB14 --- 
 	PB15 --- OLED_SDA	I
-	
+
 	PC0 ---- AD1		I
 	PC1 ---- AD2		I
 	PC2 ---- AD3		I
@@ -102,10 +102,10 @@ Inner IO Map
 	PC13 --- 
 	PC14 --- OSC
 	PC15 --- OSC
-	
+
 	PD0 ---- OSC
 	PD1 ---- OSC
 	PD2 ---- LED1
 	PD5/PA2  
 	PD6/PA3  
-
+	
