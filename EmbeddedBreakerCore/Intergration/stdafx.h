@@ -71,14 +71,6 @@
 
 //模块
 #include "link.h"										//模块对框架链接最末端文件
-#include "inv_i2c.h"									//对MPU专门优化的I2C
-//@InvenSense DMP Library Call
-#include "dmpkey.h"				
-#include "dmpmap.h"
-#include "inv_mpu_dmp_motion_driver.h"				
-#include "inv_mpu.h"
-#include "mpu6050.h"									//MPU6050底层驱动
-#include "filter.h"										//滤波器
 
 //===================================================================================================
 //code by </MATRIX>@Neod Anderjon
