@@ -34,8 +34,10 @@ void Modules_ProtocolTask (void)
 //OLED常量显示屏，链接到OLED_DisplayInitConst和UIScreen_DisplayHandler函数
 void OLED_ScreenModules_Const (void)
 {
-	OLED_ShowString(strPos(1u), ROW1, (const u8*)"   Attitude   ", Font_Size);	
-	OLED_ShowString(strPos(1u), ROW2, (const u8*)"   Algorithm  ", Font_Size);	
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("   Attitude    "));
+	OLED_ShowString(strPos(0u), ROW1, (const u8*)oled_dtbuf, Font_Size);
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("   Algorithm   "));
+	OLED_ShowString(strPos(0u), ROW2, (const u8*)oled_dtbuf, Font_Size);
 	OLED_Refresh_Gram();
 }
 

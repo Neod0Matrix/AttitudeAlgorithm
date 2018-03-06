@@ -450,49 +450,16 @@ void TIM3_IRQHandler (void)
 #endif
 }
 
-
 //OLED AttitudeAlgorithm数据显示
 void OLED_DisplayAA (EulerAngleStructure *ea)
 {	
-	//静态更新，节省进程占用
-	static float pitchDisp = 0.f, rollDisp = 0.f, yawDisp = 0.f, tempDisp = 0.f;
-	
-	//显示俯仰Pitch角度(x轴)
-	if (pitchDisp != ea -> pitch)
-	{
-		pitchDisp = ea -> pitch;
-		OLED_ShowString(strPos(0u), ROW1, (const u8*)"P:", Font_Size);
-		OLED_ShowNum(strPos(2u), ROW1, pitchDisp, 3u, Font_Size);	
-		OLED_ShowString(strPos(5u), ROW1, (const u8*)".", Font_Size);
-		OLED_ShowNum(strPos(6u), ROW1, ((u16)(pitchDisp * 10) % 10), 1u, Font_Size);
-	}
-	//显示翻滚Roll角度(y轴)
-	if (rollDisp != ea -> roll)
-	{
-		rollDisp = ea -> roll;
-		OLED_ShowString(strPos(8u), ROW1, (const u8*)"R:", Font_Size);
-		OLED_ShowNum(strPos(10u), ROW1, rollDisp, 3u, Font_Size);	
-		OLED_ShowString(strPos(13u), ROW1, (const u8*)".", Font_Size);
-		OLED_ShowNum(strPos(14u), ROW1, ((u16)(rollDisp * 10) % 10), 1u, Font_Size);
-	}
-	//显示航向Yaw角度(z轴)
-	if (yawDisp != ea -> yaw)
-	{
-		yawDisp = ea -> yaw;
-		OLED_ShowString(strPos(0u), ROW2, (const u8*)"Y:", Font_Size);
-		OLED_ShowNum(strPos(2u), ROW2, yawDisp, 3u, Font_Size);	
-		OLED_ShowString(strPos(5u), ROW2, (const u8*)".", Font_Size);
-		OLED_ShowNum(strPos(6u), ROW2, ((u16)(yawDisp * 10) % 10), 1u, Font_Size);
-	}
-	//显示MPU芯片温度
-	if (tempDisp != MPU_GlobalTemp)
-	{
-		tempDisp = MPU_GlobalTemp;
-		OLED_ShowString(strPos(8u), ROW2, (const u8*)"T:", Font_Size);
-		OLED_ShowNum(strPos(10u), ROW2, tempDisp, 3u, Font_Size);	
-		OLED_ShowString(strPos(13u), ROW2, (const u8*)".", Font_Size);
-		OLED_ShowNum(strPos(14u), ROW2, ((u16)(tempDisp * 10) % 10), 1u, Font_Size);
-	}
+	//通用格式化显示为000.0
+	//显示俯仰Pitch角度(x轴)、显示翻滚Roll角度(y轴)
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P:%5.1f R:%5.1f"), ea -> pitch, ea -> roll);
+	OLED_ShowString(strPos(0u), ROW1, (const u8*)oled_dtbuf, Font_Size);
+	//显示航向Yaw角度(z轴)、显示MPU芯片温度
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y:%5.1f T:%5.1f"), ea -> yaw, MPU_GlobalTemp);
+	OLED_ShowString(strPos(0u), ROW2, (const u8*)oled_dtbuf, Font_Size);
 	OLED_Refresh_Gram();
 }
 
