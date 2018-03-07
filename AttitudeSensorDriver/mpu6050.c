@@ -242,7 +242,7 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 		if (i++ == 5)
 		{
 			i = 0;
-			U1SD("More Fatal, Restarting\r\n");
+			U1SD("More Fatal, Directly Restarting\r\n");
 			Sys_Soft_Reset();
 		}
 		/* once fatal, get error code and retry. */
@@ -291,7 +291,7 @@ void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 }
 
 //读取MPU6050内置温度传感器数据
-float MPU6050_ReadTemperature (void)
+static float MPU6050_ReadTemperature (void)
 {	
 	u8 buf[2]; 
     volatile short raw;
@@ -322,7 +322,7 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	long quat[4];											
 	short gyro[3], accel[3], sensors;
 	unsigned long sensor_timestamp;
-	volatile float qbias[4] = {1.f, 0.f, 0.f, 0.f};		
+	float qbias[4] = {1.f, 0.f, 0.f, 0.f};		
 
 	/* 	Gyro and accel data are written to the FIFO by the DMP in chip frame and hardware units.
 	 * 	This behavior is convenient because it keeps the gyro and accel outputs of dmp_read_fifo and mpu_read_fifo consistent.
@@ -332,7 +332,7 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	**/
 	if (dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more))
 	{
-		/* here should give fatal read process up. */
+		/* here should give fatal read process up, give print, it will elapse time. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope Read DMP Fatal\r\n");
 		return 1;
 	}
@@ -360,7 +360,7 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		__ShellHeadSymbol__;
 		if (No_Data_Receive && PC_Switch == PC_Enable)
 		{
-			printf("Euler Angle USART Outputs: [Pitch: %.2f | Roll: %.2f | Yaw: %.2f]\r\n", 
+			printf("Euler Angle USART Outputs: [Pitch: %6.2f | Roll: %6.2f | Yaw: %6.2f]\r\n", 
 					ea -> pitch, ea -> roll, ea -> yaw);			
 			usart1WaitForDataTransfer();		
 		}
@@ -370,7 +370,7 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	}
 	else
 	{
-		/* give here up too. */
+		/* give here up too, print will elapse time. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope DMP Algorithm Fatal\r\n");
 		return 2;
 	}
@@ -403,6 +403,7 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 	}
 }
 
+#ifdef Use_TimerTrigger_DMP
 //注意高级定时器18挂载在APB2总线上，通用定时器2345挂载在APB1总线上
 //TIM3定时时基源
 #define IMURTFreqDivTimer		TIM3
@@ -424,9 +425,14 @@ void TIM3_IMURealTimeWork (FunctionalState control)
 							TIM_CKD_DIV1, 
 							TIM_CounterMode_Up, 
 							irq_Use, 	
-							//避免陀螺仪解算过程被打断
+							/*
+								这里中断优先级设置很关键
+								既要避免陀螺仪解算过程被打断而解算失败
+								又要避免因为过于频繁地解算而影响其他任务
+								甚至还有导致非中断任务卡死
+							*/
 							0x03, 
-							0x06, 
+							0x05, 
 							control);
 }  
 
@@ -442,23 +448,23 @@ void TIM3_IRQHandler (void)
 		TIM_ClearITPendingBit(IMURTFreqDivTimer, TIM_IT_Update);//清除TIMx的中断待处理位
 		
 		//IMUINT_Disable选择不读取INT脚状态
-		dmpAttitudeAlgorithm_RT(IMUINT_Disable);
+		dmpAttitudeAlgorithm_RT(IMUINT_Disable);			
 	}
 	
 #if SYSTEM_SUPPORT_OS										//OS支持
 	OSIntExit();    
 #endif
 }
+#endif
 
 //OLED AttitudeAlgorithm数据显示
 void OLED_DisplayAA (EulerAngleStructure *ea)
-{	
-	//通用格式化显示为000.0
+{
 	//显示俯仰Pitch角度(x轴)、显示翻滚Roll角度(y轴)
-	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P:%5.1f R:%5.1f"), ea -> pitch, ea -> roll);
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P%6.2f R%6.2f"), ea -> pitch, ea -> roll);
 	OLED_ShowString(strPos(0u), ROW1, (const u8*)oled_dtbuf, Font_Size);
 	//显示航向Yaw角度(z轴)、显示MPU芯片温度
-	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y:%5.1f T:%5.1f"), ea -> yaw, MPU_GlobalTemp);
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y%6.2f T%6.2f"), ea -> yaw, MPU_GlobalTemp);
 	OLED_ShowString(strPos(0u), ROW2, (const u8*)oled_dtbuf, Font_Size);
 	OLED_Refresh_Gram();
 }

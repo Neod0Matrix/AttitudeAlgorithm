@@ -197,50 +197,50 @@
 #define MPU6050_I2C_MST_CLK_BIT     3
 #define MPU6050_I2C_MST_CLK_LENGTH  4
 
-#define MPU6050_CLOCK_DIV_348       0x0
-#define MPU6050_CLOCK_DIV_333       0x1
-#define MPU6050_CLOCK_DIV_320       0x2
-#define MPU6050_CLOCK_DIV_308       0x3
-#define MPU6050_CLOCK_DIV_296       0x4
-#define MPU6050_CLOCK_DIV_286       0x5
-#define MPU6050_CLOCK_DIV_276       0x6
-#define MPU6050_CLOCK_DIV_267       0x7
-#define MPU6050_CLOCK_DIV_258       0x8
-#define MPU6050_CLOCK_DIV_500       0x9
-#define MPU6050_CLOCK_DIV_471       0xA
-#define MPU6050_CLOCK_DIV_444       0xB
-#define MPU6050_CLOCK_DIV_421       0xC
-#define MPU6050_CLOCK_DIV_400       0xD
-#define MPU6050_CLOCK_DIV_381       0xE
-#define MPU6050_CLOCK_DIV_364       0xF
+#define MPU6050_CLOCK_DIV_348       		0x0
+#define MPU6050_CLOCK_DIV_333       		0x1
+#define MPU6050_CLOCK_DIV_320       		0x2
+#define MPU6050_CLOCK_DIV_308       		0x3
+#define MPU6050_CLOCK_DIV_296       		0x4
+#define MPU6050_CLOCK_DIV_286       		0x5
+#define MPU6050_CLOCK_DIV_276       		0x6
+#define MPU6050_CLOCK_DIV_267       		0x7
+#define MPU6050_CLOCK_DIV_258       		0x8
+#define MPU6050_CLOCK_DIV_500       		0x9
+#define MPU6050_CLOCK_DIV_471       		0xA
+#define MPU6050_CLOCK_DIV_444       		0xB
+#define MPU6050_CLOCK_DIV_421       		0xC
+#define MPU6050_CLOCK_DIV_400       		0xD
+#define MPU6050_CLOCK_DIV_381       		0xE
+#define MPU6050_CLOCK_DIV_364       		0xF
 
-#define MPU6050_I2C_SLV_RW_BIT      7
-#define MPU6050_I2C_SLV_ADDR_BIT    6
-#define MPU6050_I2C_SLV_ADDR_LENGTH 7
-#define MPU6050_I2C_SLV_EN_BIT      7
-#define MPU6050_I2C_SLV_BYTE_SW_BIT 6
-#define MPU6050_I2C_SLV_REG_DIS_BIT 5
-#define MPU6050_I2C_SLV_GRP_BIT     4
-#define MPU6050_I2C_SLV_LEN_BIT     3
-#define MPU6050_I2C_SLV_LEN_LENGTH  4
+#define MPU6050_I2C_SLV_RW_BIT      		7
+#define MPU6050_I2C_SLV_ADDR_BIT    		6
+#define MPU6050_I2C_SLV_ADDR_LENGTH 		7
+#define MPU6050_I2C_SLV_EN_BIT      		7
+#define MPU6050_I2C_SLV_BYTE_SW_BIT 		6
+#define MPU6050_I2C_SLV_REG_DIS_BIT 		5
+#define MPU6050_I2C_SLV_GRP_BIT     		4
+#define MPU6050_I2C_SLV_LEN_BIT     		3
+#define MPU6050_I2C_SLV_LEN_LENGTH  		4
 
-#define MPU6050_I2C_SLV4_RW_BIT         7
-#define MPU6050_I2C_SLV4_ADDR_BIT       6
-#define MPU6050_I2C_SLV4_ADDR_LENGTH    7
-#define MPU6050_I2C_SLV4_EN_BIT         7
-#define MPU6050_I2C_SLV4_INT_EN_BIT     6
-#define MPU6050_I2C_SLV4_REG_DIS_BIT    5
-#define MPU6050_I2C_SLV4_MST_DLY_BIT    4
-#define MPU6050_I2C_SLV4_MST_DLY_LENGTH 5
+#define MPU6050_I2C_SLV4_RW_BIT         	7
+#define MPU6050_I2C_SLV4_ADDR_BIT       	6
+#define MPU6050_I2C_SLV4_ADDR_LENGTH    	7
+#define MPU6050_I2C_SLV4_EN_BIT         	7
+#define MPU6050_I2C_SLV4_INT_EN_BIT     	6
+#define MPU6050_I2C_SLV4_REG_DIS_BIT    	5
+#define MPU6050_I2C_SLV4_MST_DLY_BIT    	4
+#define MPU6050_I2C_SLV4_MST_DLY_LENGTH 	5
 
-#define MPU6050_MST_PASS_THROUGH_BIT    7
-#define MPU6050_MST_I2C_SLV4_DONE_BIT   6
-#define MPU6050_MST_I2C_LOST_ARB_BIT    5
-#define MPU6050_MST_I2C_SLV4_NACK_BIT   4
-#define MPU6050_MST_I2C_SLV3_NACK_BIT   3
-#define MPU6050_MST_I2C_SLV2_NACK_BIT   2
-#define MPU6050_MST_I2C_SLV1_NACK_BIT   1
-#define MPU6050_MST_I2C_SLV0_NACK_BIT   0
+#define MPU6050_MST_PASS_THROUGH_BIT    	7
+#define MPU6050_MST_I2C_SLV4_DONE_BIT   	6
+#define MPU6050_MST_I2C_LOST_ARB_BIT    	5
+#define MPU6050_MST_I2C_SLV4_NACK_BIT   	4
+#define MPU6050_MST_I2C_SLV3_NACK_BIT   	3
+#define MPU6050_MST_I2C_SLV2_NACK_BIT   	2
+#define MPU6050_MST_I2C_SLV1_NACK_BIT   	1
+#define MPU6050_MST_I2C_SLV0_NACK_BIT   	0
 
 #define MPU6050_INTCFG_INT_LEVEL_BIT        7
 #define MPU6050_INTCFG_INT_OPEN_BIT         6
@@ -251,17 +251,17 @@
 #define MPU6050_INTCFG_I2C_BYPASS_EN_BIT    1
 #define MPU6050_INTCFG_CLKOUT_EN_BIT        0
 
-#define MPU6050_INTMODE_ACTIVEHIGH  0x00
-#define MPU6050_INTMODE_ACTIVELOW   0x01
+#define MPU6050_INTMODE_ACTIVEHIGH  		0x00
+#define MPU6050_INTMODE_ACTIVELOW   		0x01
 
-#define MPU6050_INTDRV_PUSHPULL     0x00
-#define MPU6050_INTDRV_OPENDRAIN    0x01
+#define MPU6050_INTDRV_PUSHPULL     		0x00
+#define MPU6050_INTDRV_OPENDRAIN    		0x01
 
-#define MPU6050_INTLATCH_50USPULSE  0x00
-#define MPU6050_INTLATCH_WAITCLEAR  0x01
+#define MPU6050_INTLATCH_50USPULSE  		0x00
+#define MPU6050_INTLATCH_WAITCLEAR  		0x01
 
-#define MPU6050_INTCLEAR_STATUSREAD 0x00
-#define MPU6050_INTCLEAR_ANYREAD    0x01
+#define MPU6050_INTCLEAR_STATUSREAD 		0x00
+#define MPU6050_INTCLEAR_ANYREAD    		0x01
 
 #define MPU6050_INTERRUPT_FF_BIT            7
 #define MPU6050_INTERRUPT_MOT_BIT           6
@@ -274,20 +274,20 @@
 
 //TODO: figure out what these actually do
 //UMPL source code is not very obivous
-#define MPU6050_DMPINT_5_BIT            5
-#define MPU6050_DMPINT_4_BIT            4
-#define MPU6050_DMPINT_3_BIT            3
-#define MPU6050_DMPINT_2_BIT            2
-#define MPU6050_DMPINT_1_BIT            1
-#define MPU6050_DMPINT_0_BIT            0
+#define MPU6050_DMPINT_5_BIT            	5
+#define MPU6050_DMPINT_4_BIT            	4
+#define MPU6050_DMPINT_3_BIT            	3
+#define MPU6050_DMPINT_2_BIT            	2
+#define MPU6050_DMPINT_1_BIT            	1
+#define MPU6050_DMPINT_0_BIT            	0
 
-#define MPU6050_MOTION_MOT_XNEG_BIT     7
-#define MPU6050_MOTION_MOT_XPOS_BIT     6
-#define MPU6050_MOTION_MOT_YNEG_BIT     5
-#define MPU6050_MOTION_MOT_YPOS_BIT     4
-#define MPU6050_MOTION_MOT_ZNEG_BIT     3
-#define MPU6050_MOTION_MOT_ZPOS_BIT     2
-#define MPU6050_MOTION_MOT_ZRMOT_BIT    0
+#define MPU6050_MOTION_MOT_XNEG_BIT     	7
+#define MPU6050_MOTION_MOT_XPOS_BIT     	6
+#define MPU6050_MOTION_MOT_YNEG_BIT     	5
+#define MPU6050_MOTION_MOT_YPOS_BIT     	4
+#define MPU6050_MOTION_MOT_ZNEG_BIT     	3
+#define MPU6050_MOTION_MOT_ZPOS_BIT     	2
+#define MPU6050_MOTION_MOT_ZRMOT_BIT    	0
 
 #define MPU6050_DELAYCTRL_DELAY_ES_SHADOW_BIT   7
 #define MPU6050_DELAYCTRL_I2C_SLV4_DLY_EN_BIT   4
@@ -307,34 +307,34 @@
 #define MPU6050_DETECT_MOT_COUNT_BIT            1
 #define MPU6050_DETECT_MOT_COUNT_LENGTH         2
 
-#define MPU6050_DETECT_DECREMENT_RESET  0x0
-#define MPU6050_DETECT_DECREMENT_1      0x1
-#define MPU6050_DETECT_DECREMENT_2      0x2
-#define MPU6050_DETECT_DECREMENT_4      0x3
+#define MPU6050_DETECT_DECREMENT_RESET  	0x0
+#define MPU6050_DETECT_DECREMENT_1      	0x1
+#define MPU6050_DETECT_DECREMENT_2      	0x2
+#define MPU6050_DETECT_DECREMENT_4      	0x3
 
-#define MPU6050_USERCTRL_DMP_EN_BIT             7
-#define MPU6050_USERCTRL_FIFO_EN_BIT            6
-#define MPU6050_USERCTRL_I2C_MST_EN_BIT         5
-#define MPU6050_USERCTRL_I2C_IF_DIS_BIT         4
-#define MPU6050_USERCTRL_DMP_RESET_BIT          3
-#define MPU6050_USERCTRL_FIFO_RESET_BIT         2
-#define MPU6050_USERCTRL_I2C_MST_RESET_BIT      1
-#define MPU6050_USERCTRL_SIG_COND_RESET_BIT     0
+#define MPU6050_USERCTRL_DMP_EN_BIT         7
+#define MPU6050_USERCTRL_FIFO_EN_BIT        6
+#define MPU6050_USERCTRL_I2C_MST_EN_BIT     5
+#define MPU6050_USERCTRL_I2C_IF_DIS_BIT     4
+#define MPU6050_USERCTRL_DMP_RESET_BIT      3
+#define MPU6050_USERCTRL_FIFO_RESET_BIT     2
+#define MPU6050_USERCTRL_I2C_MST_RESET_BIT  1
+#define MPU6050_USERCTRL_SIG_COND_RESET_BIT 0
 
-#define MPU6050_PWR1_DEVICE_RESET_BIT   7
-#define MPU6050_PWR1_SLEEP_BIT          6
-#define MPU6050_PWR1_CYCLE_BIT          5
-#define MPU6050_PWR1_TEMP_DIS_BIT       3
-#define MPU6050_PWR1_CLKSEL_BIT         2
-#define MPU6050_PWR1_CLKSEL_LENGTH      3
+#define MPU6050_PWR1_DEVICE_RESET_BIT   	7
+#define MPU6050_PWR1_SLEEP_BIT          	6
+#define MPU6050_PWR1_CYCLE_BIT          	5
+#define MPU6050_PWR1_TEMP_DIS_BIT       	3
+#define MPU6050_PWR1_CLKSEL_BIT         	2
+#define MPU6050_PWR1_CLKSEL_LENGTH      	3
 
-#define MPU6050_CLOCK_INTERNAL          0x00
-#define MPU6050_CLOCK_PLL_XGYRO         0x01
-#define MPU6050_CLOCK_PLL_YGYRO         0x02
-#define MPU6050_CLOCK_PLL_ZGYRO         0x03
-#define MPU6050_CLOCK_PLL_EXT32K        0x04
-#define MPU6050_CLOCK_PLL_EXT19M        0x05
-#define MPU6050_CLOCK_KEEP_RESET        0x07
+#define MPU6050_CLOCK_INTERNAL          	0x00
+#define MPU6050_CLOCK_PLL_XGYRO         	0x01
+#define MPU6050_CLOCK_PLL_YGYRO         	0x02
+#define MPU6050_CLOCK_PLL_ZGYRO         	0x03
+#define MPU6050_CLOCK_PLL_EXT32K        	0x04
+#define MPU6050_CLOCK_PLL_EXT19M        	0x05
+#define MPU6050_CLOCK_KEEP_RESET        	0x07
 
 #define MPU6050_PWR2_LP_WAKE_CTRL_BIT       7
 #define MPU6050_PWR2_LP_WAKE_CTRL_LENGTH    2
@@ -358,26 +358,31 @@
 #define MPU6050_WHO_AM_I_BIT        		6
 #define MPU6050_WHO_AM_I_LENGTH     		6
 
+//设置解算触发模式(定时器or外部中断)
+#define Use_TimerTrigger_DMP								//使用外部中断则注释该行		
+
 //MPU数据解析频率(建议任务不多时设置为150-200(200Hz最高)，任务较多设置为50-100)
 #define MPUDataReadFreq  					200				
-//MPU内部数据放大pow(2, 30)倍，输出时需要缩小
-#define q30  								1073741824.0f 	
+//MPU内部数据放大pow(2, 30)倍，输出时需要缩小，默认为double类型
+#define q30  								1073741824.f 	
 
 //是否使用MPU自带的INT引脚作为解算触发源
 typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Trigger;
 
 //判断MPU6050数据转换是否完成
 #define IO_MPU_INT							PBin(12)		//MPU芯片INT脚映射
+#ifndef Use_TimerTrigger_DMP
+#define MPU_INT_EXTI_Line					EXTI_Line12		//外部中断使用的触发总线
+#endif
 #define MPU_DataTransferFinishedINTLevel	Bit_RESET		//设置转换完成电平
 #define Is_MPUDataTransfer_Finished 		((IO_MPU_INT \
-											== MPU_DataTransferFinishedINTLevel)? True : False)
+											== MPU_DataTransferFinishedINTLevel)? True : False)		
 
 //欧拉角数据弧度制角度制转换
-#define PI									3.141f
-#define RadTransferDegree					(180.f / PI)	//约57.3，弧度制转角度制系数
-//负数翻转
+#define RadTransferDegree					57.3f			//180/pi，弧度制转角度制系数
+//反向翻转(限制欧拉角取值为0-360度)
 #ifndef AngleRangeLimitExcess
-#define AngleRangeLimitExcess(axis)			axis = (axis < 0)? axis += 360 : axis;
+#define AngleRangeLimitExcess(axis)			(axis = (axis < 0)? axis += 360:axis)
 #endif
 
 /* 	I2C read data process will lead to data change quickly, 
@@ -386,8 +391,8 @@ typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Tri
 //陀螺仪加速度计结构体
 typedef __packed struct 
 {
-	volatile short gx, gy, gz;						//三轴陀螺仪
-	volatile short ax, ay, az;						//三轴加速度计
+	volatile short gx, gy, gz;								//三轴陀螺仪
+	volatile short ax, ay, az;								//三轴加速度计
 } GyroAccelStructure;
 extern GyroAccelStructure gas;
 static void GyroAccelStructureInit (GyroAccelStructure *ga);
@@ -395,9 +400,9 @@ static void GyroAccelStructureInit (GyroAccelStructure *ga);
 //欧拉角结构体
 typedef __packed struct 
 {
-	volatile float pitch;							//x轴
-	volatile float roll;							//y轴
-	volatile float yaw;								//z轴
+	volatile float pitch;									//x轴
+	volatile float roll;									//y轴
+	volatile float yaw;										//z轴
 } EulerAngleStructure;
 extern EulerAngleStructure eas;
 static void EulerAngleStructureInit (EulerAngleStructure *ea);
@@ -410,7 +415,7 @@ static u8 MPU6050_SetSampleRate (u16 rate);
 static uint8_t mpu_intrinsic_dmp_init (void);
 void MPU6050_INT_IO_Init (void);
 Bool_ClassType GyroscopeTotalComponentInit (void);
-float MPU6050_ReadTemperature (void);
+static float MPU6050_ReadTemperature (void);
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga);
 
 //解算库

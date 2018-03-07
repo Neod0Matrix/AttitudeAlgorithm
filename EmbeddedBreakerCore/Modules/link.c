@@ -42,24 +42,32 @@ void OLED_ScreenModules_Const (void)
 }
 
 //OLED模块调用数据显示，链接到UIScreen_DisplayHandler函数
-void OLED_DisplayModules (void)
+void OLED_DisplayModules (u8 page)
 {
-	OLED_DisplayAA(&eas);
+	switch (page)
+	{
+	case 4:
+		OLED_DisplayAA(&eas);
+		break;
+	}
 }
 
 //硬件底层初始化任务，链接到bspPeriSysCalls函数
 void Modules_HardwareInit (void)
 {
 	GyroscopeTotalComponentInit();
+#ifdef Use_TimerTrigger_DMP
 	TIM3_IMURealTimeWork(ENABLE);
+#endif
 }
 
 //硬件底层外部中断初始化，链接到EXTI_Config_Init函数
 void Modules_ExternInterruptInit (void)
 {
-	/*
+#ifndef Use_TimerTrigger_DMP
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			
-	MPU6050_INT_IO_Init();
+	MPU6050_INT_IO_Init();							//初始化INT引脚
+	
 	ucEXTI_ModeConfig(	GPIO_PortSourceGPIOB, 
 						GPIO_PinSource12, 
 						MPU_INT_EXTI_Line, 
@@ -70,33 +78,32 @@ void Modules_ExternInterruptInit (void)
 						EXTI_Trigger_Rising,
 #endif
 						EXTI15_10_IRQn, 
-						0x03, 
-						0x03);
-*/
+						0x04, 
+						0x01);
+#endif
 }
 
 //外部中断任务，无需声明，使用时修改函数名
-/*
+#ifndef Use_TimerTrigger_DMP
 void EXTI15_10_IRQHandler (void)
 {
 #if SYSTEM_SUPPORT_OS 												
 	OSIntEnter();    
 #endif	
-	*/
 
 	/*	Here read one signal level not a key, handler method is different than last.
 	 *	If you confirm test in external interrupt update dmp, please enable IMUINT_Enable.
 	 *	Setting external interrupt may lead to program dump out, notice it.	
 	**/
-	/*
-	dmpAttitudeAlgorithm_RT(IMUINT_Enable);
+	
+	dmpAttitudeAlgorithm_RT(IMUINT_Enable);							//读取MPU INT引脚信号
 	EXTI_ClearITPendingBit(MPU_INT_EXTI_Line);  					//清除EXTI线路挂起位
 	
 #if SYSTEM_SUPPORT_OS 												
 	OSIntExit();  											 
 #endif
 }
-*/
+#endif
 
 //模块非中断任务，链接到local_taskmgr.c，默认添加到第二任务
 void Modules_NonInterruptTask (void)
