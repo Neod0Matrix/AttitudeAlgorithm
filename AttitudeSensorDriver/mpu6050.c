@@ -50,17 +50,17 @@ static u16 inv_row_2_scale (const signed char *row)
 {
     u16 b;
 
-    if (row[0] > 0)
+    if (*(row + 0) > 0)
 		b = 0;
-    else if (row[0] < 0)
+    else if (*(row + 0) < 0)
         b = 4;
-    else if (row[1] > 0)
+    else if (*(row + 1) > 0)
         b = 1;
-    else if (row[1] < 0)
+    else if (*(row + 1) < 0)
         b = 5;
-    else if (row[2] > 0)
+    else if (*(row + 2) > 0)
         b = 2;
-    else if (row[2] < 0)
+    else if (*(row + 2) < 0)
         b = 6;
     else
         b = 7;      //error
@@ -92,8 +92,10 @@ static u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
 static Bool_ClassType run_self_test (void)
 {
     int result;
-    long gyro[3], accel[3];
+    long *gyro, *accel;
 	
+	gyro = (long*)mymalloc(sizeof(long) * 3);
+	accel = (long*)mymalloc(sizeof(long) * 3);
     result = mpu_run_self_test(gyro, accel);
     if (result == 0x3) 							//MPU6500: 0x7
 	{
@@ -101,15 +103,17 @@ static Bool_ClassType run_self_test (void)
 		float sens;
 		u16 accel_sens;
         mpu_get_gyro_sens(&sens);
-        gyro[0] = (long)(gyro[0] * sens);
-        gyro[1] = (long)(gyro[1] * sens);
-        gyro[2] = (long)(gyro[2] * sens);
+		*(gyro + 0) = (long)(*(gyro + 0) * sens);
+        *(gyro + 1) = (long)(*(gyro + 1) * sens);
+        *(gyro + 2) = (long)(*(gyro + 2) * sens);
         dmp_set_gyro_bias(gyro);
+		myfree(gyro);
         mpu_get_accel_sens(&accel_sens);
-        accel[0] *= accel_sens;
-        accel[1] *= accel_sens;
-        accel[2] *= accel_sens;
+        *(accel + 0) *= accel_sens;
+        *(accel + 1) *= accel_sens;
+        *(accel + 2) *= accel_sens;
         dmp_set_accel_bias(accel);
+		myfree(accel);
 		
 		return False;
     }
@@ -170,7 +174,7 @@ static u8 MPU6050_SetSampleRate (u16 rate)
 {
 	u16 srf;
 	
-	//数据限位，最大实际200hz
+	//数据限位，最大实际200Hz
 	srf = rate;
 	if (srf > 200)	srf = 200;
 	if (srf < 4) 	srf = 4;
@@ -262,25 +266,24 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 //MPU获取陀螺仪加速度计数据
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 {
-    u8 i, buf[6] = {0};  
+    u8 *buf; 
 	
+	buf = (u8*)mymalloc(sizeof(u8) * 6);
 	//读陀螺仪
 	if (!i2cRead(MPUDEVADDR, MPU6050_RA_GYRO_XOUT_H, 6, buf))
 	{
-		ga -> gx = ((u16)buf[0] << 8) | buf[1];  
-		ga -> gy = ((u16)buf[2] << 8) | buf[3];  
-		ga -> gz = ((u16)buf[4] << 8) | buf[5];
+		ga -> gx = ((u16)*(buf + 0) << 8) | *(buf + 1);  
+		ga -> gy = ((u16)*(buf + 2) << 8) | *(buf + 3);  
+		ga -> gz = ((u16)*(buf + 4) << 8) | *(buf + 5);
 	} 	
-	//清除缓存
-	for (i = 0; i < 6; i++)
-		buf[i] = 0;
 	//读加速度
 	if (!i2cRead(MPUDEVADDR, MPU6050_RA_ACCEL_XOUT_H, 6, buf))
 	{
-		ga -> ax = ((u16)buf[0] << 8) | buf[1];  
-		ga -> ay = ((u16)buf[2] << 8) | buf[3];  
-		ga -> az = ((u16)buf[4] << 8) | buf[5];
+		ga -> ax = ((u16)*(buf + 0) << 8) | *(buf + 1);  
+		ga -> ay = ((u16)*(buf + 2) << 8) | *(buf + 3); 
+		ga -> az = ((u16)*(buf + 4) << 8) | *(buf + 5);
 	} 
+	myfree(buf);
 	/* print test visual 
 	if (No_Data_Receive && PC_Switch == PC_Enable)
 	{
@@ -293,12 +296,14 @@ void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 //读取MPU6050内置温度传感器数据
 static float MPU6050_ReadTemperature (void)
 {	
-	u8 buf[2]; 
+	u8 *buf; 
     volatile short raw;
 	volatile float temp;
 	
+	buf = (u8*)mymalloc(sizeof(u8) * 2);
 	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, buf); 
-    raw = ((u16)buf[0] << 8) | buf[1];  
+    raw = ((u16)*(buf + 0) << 8) | *(buf + 1); 
+	myfree(buf);
 	//here transfer to degree celsius
     temp = 36.53f + ((double)raw) / 340.f; 
 	/* print test visual 
@@ -323,7 +328,7 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	short gyro[3], accel[3], sensors;
 	unsigned long sensor_timestamp;
 	float qbias[4] = {1.f, 0.f, 0.f, 0.f};		
-
+	
 	/* 	Gyro and accel data are written to the FIFO by the DMP in chip frame and hardware units.
 	 * 	This behavior is convenient because it keeps the gyro and accel outputs of dmp_read_fifo and mpu_read_fifo consistent.
 	 * 	Unlike gyro and accel, quaternions are written to the FIFO in the body frame, q30.
@@ -338,21 +343,25 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	}
 	if (sensors & INV_WXYZ_QUAT)
 	{    
-		/* division 2^30 amplify. */
+		/* division 2^30 amplify, point operate more fast. */
 		for (i = 0; i < 4; i++)
-			qbias[i] = quat[i] / q30;
+			*(qbias + i) = *(quat + i) / q30;
 		
 		/* 	4 quats number matrix calculate and data result calibration. */
 		/* -pi/2<=pitch<=pi/2. */
-		ea -> pitch = (float)asin(-2 * qbias[1] * qbias[3] + 2 * qbias[0] * qbias[2]) * RadTransferDegree; 
+		ea -> pitch = (float)asin(-2 * *(qbias + 1) * *(qbias + 3) 
+			+ 2 * *(qbias + 0) * *(qbias + 2)) * RadTransferDegree; 
 		AngleRangeLimitExcess(ea -> pitch);		
 		/* -pi<=roll<=pi. */
-		ea -> roll = (float)atan2(2 * qbias[2] * qbias[3] + 2 * qbias[0] * qbias[1], 
-			-2 * qbias[1] * qbias[1] - 2 * qbias[2] * qbias[2] + 1) * RadTransferDegree; 
+		ea -> roll = (float)atan2(2 * *(qbias + 2) * *(qbias + 3) 
+			+ 2 * *(qbias + 0) * *(qbias + 1), -2 * *(qbias + 1) * 
+			*(qbias + 1) - 2 * *(qbias + 2) * *(qbias + 2) + 1) * RadTransferDegree; 
 		AngleRangeLimitExcess(ea -> roll);
 		/* -pi<=yaw<=pi. */
-		ea -> yaw = (float)atan2(2 * (qbias[1] * qbias[2] + qbias[0] * qbias[3]), 
-			qbias[0] * qbias[0] + qbias[1] * qbias[1] - qbias[2] * qbias[2] - qbias[3] * qbias[3]) * RadTransferDegree;
+		ea -> yaw = (float)atan2(2 * (*(qbias + 1) * *(qbias + 2) 
+			+ *(qbias + 0) * *(qbias + 3)), *(qbias + 0) * *(qbias + 0) 
+			+ *(qbias + 1) * *(qbias + 1) - *(qbias + 2) * *(qbias + 2) 
+			- *(qbias + 3) * *(qbias + 3)) * RadTransferDegree;
 		AngleRangeLimitExcess(ea -> yaw);
 		
 		/*
