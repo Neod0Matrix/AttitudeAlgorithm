@@ -339,11 +339,12 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	{
 		/* here should give fatal read process up, give print, it will elapse time. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope Read DMP Fatal\r\n");
+		
 		return 1;
 	}
 	if (sensors & INV_WXYZ_QUAT)
 	{    
-		/* division 2^30 amplify, point operate more fast. */
+		/* division 2^30 amplify, pointer operate more fast. */
 		for (i = 0; i < 4; i++)
 			*(qbias + i) = *(quat + i) / q30;
 		
@@ -365,7 +366,6 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		AngleRangeLimitExcess(ea -> yaw);
 		
 		/*
-		//print into com test visual
 		__ShellHeadSymbol__;
 		if (No_Data_Receive && PC_Switch == PC_Enable)
 		{
@@ -381,8 +381,25 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	{
 		/* give here up too, print will elapse time. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope DMP Algorithm Fatal\r\n");
+		
 		return 2;
 	}
+}
+
+/*
+	OLED AttitudeAlgorithm数据显示
+	链接到OLED_DisplayModules函数
+	如果追求显示的实时性，可以考虑放到中断更新中
+*/
+void OLED_DisplayAA (EulerAngleStructure *ea)
+{
+	//显示俯仰Pitch角度(x轴)、显示翻滚Roll角度(y轴)
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P%6.2f R%6.2f"), ea -> pitch, ea -> roll);
+	OLED_ShowString(strPos(0u), ROW1, (const u8*)oled_dtbuf, Font_Size);
+	//显示航向Yaw角度(z轴)、显示MPU芯片温度
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y%6.2f T%6.2f"), ea -> yaw, MPU_GlobalTemp);
+	OLED_ShowString(strPos(0u), ROW2, (const u8*)oled_dtbuf, Font_Size);
+	OLED_Refresh_Gram();
 }
 
 //MPU实时任务
@@ -402,12 +419,18 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 		&& ((!imi_flag) || Is_MPUDataTransfer_Finished))	
 	{
 		/* first @InvenSense DMP call. */
-		if (!dmpAttitudeAlgorithm(&eas))					
+		if (!dmpAttitudeAlgorithm(&eas)) 
 		{
-			/* original chip data read. */
-			MPU6050_GetGyroAccelOriginData(&gas);
 			/* chip inner temperature read. */
 			MPU_GlobalTemp = MPU6050_ReadTemperature();		
+			/* 	real-time update oled display, 
+			 * 	and oled display function include delay, 
+			 *	not support add it in here. 
+			**/
+			if (MOE_Switch == MOE_Enable && oledScreenFlag == 4)
+				OLED_DisplayAA(&eas);
+			/* original chip data read. */
+			MPU6050_GetGyroAccelOriginData(&gas);
 		}
 	}
 }
@@ -465,18 +488,6 @@ void TIM3_IRQHandler (void)
 #endif
 }
 #endif
-
-//OLED AttitudeAlgorithm数据显示
-void OLED_DisplayAA (EulerAngleStructure *ea)
-{
-	//显示俯仰Pitch角度(x轴)、显示翻滚Roll角度(y轴)
-	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P%6.2f R%6.2f"), ea -> pitch, ea -> roll);
-	OLED_ShowString(strPos(0u), ROW1, (const u8*)oled_dtbuf, Font_Size);
-	//显示航向Yaw角度(z轴)、显示MPU芯片温度
-	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y%6.2f T%6.2f"), ea -> yaw, MPU_GlobalTemp);
-	OLED_ShowString(strPos(0u), ROW2, (const u8*)oled_dtbuf, Font_Size);
-	OLED_Refresh_Gram();
-}
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

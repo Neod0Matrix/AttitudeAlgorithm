@@ -47,7 +47,8 @@ void OLED_DisplayModules (u8 page)
 	switch (page)
 	{
 	case 4:
-		OLED_DisplayAA(&eas);
+		//欧拉角显示需要快速，直接将OLED更新放到中断中完成
+		//OLED_DisplayAA(&eas);				
 		break;
 	}
 }
