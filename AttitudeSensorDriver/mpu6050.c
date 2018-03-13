@@ -351,19 +351,24 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		/* 	4 quats number matrix calculate and data result calibration. */
 		/* -pi/2<=pitch<=pi/2. */
 		ea -> pitch = (float)asin(-2 * *(qbias + 1) * *(qbias + 3) 
-			+ 2 * *(qbias + 0) * *(qbias + 2)) * RadTransferDegree; 
-		AngleRangeLimitExcess(ea -> pitch);		
+			+ 2 * *(qbias + 0) * *(qbias + 2)) * RadTransferDegree; 	
 		/* -pi<=roll<=pi. */
 		ea -> roll = (float)atan2(2 * *(qbias + 2) * *(qbias + 3) 
 			+ 2 * *(qbias + 0) * *(qbias + 1), -2 * *(qbias + 1) * 
 			*(qbias + 1) - 2 * *(qbias + 2) * *(qbias + 2) + 1) * RadTransferDegree; 
-		AngleRangeLimitExcess(ea -> roll);
 		/* -pi<=yaw<=pi. */
 		ea -> yaw = (float)atan2(2 * (*(qbias + 1) * *(qbias + 2) 
 			+ *(qbias + 0) * *(qbias + 3)), *(qbias + 0) * *(qbias + 0) 
 			+ *(qbias + 1) * *(qbias + 1) - *(qbias + 2) * *(qbias + 2) 
 			- *(qbias + 3) * *(qbias + 3)) * RadTransferDegree;
+		
+		/* kalman filter dsp and unit transfer. */
+		AngleRangeLimitExcess(ea -> pitch);	
+		ea -> pitch = KalmanFilter1D_Calcus(ea -> pitch, &kfMPU);
+		AngleRangeLimitExcess(ea -> roll);
+		ea -> roll = KalmanFilter1D_Calcus(ea -> roll, &kfMPU);
 		AngleRangeLimitExcess(ea -> yaw);
+		ea -> yaw = KalmanFilter1D_Calcus(ea -> yaw, &kfMPU);
 		
 		/*
 		__ShellHeadSymbol__;
