@@ -28,7 +28,7 @@ typedef __packed struct
     float r; 	 								//measure noise convariance
     float p;  									//estimated error convariance 
     float g;
-} KF_1Dimen_Factor;								
+} kf_1deriv_factor;								
 
 //二维卡尔曼滤波结构体
 typedef __packed struct 
@@ -41,17 +41,15 @@ typedef __packed struct
     float r;        							//measure noise convariance 
     float p[2][2];  							//estimated error convariance,2x2 [p0 p1; p2 p3] 
     float g[2];  								//2x1 
-} KF_2Dimen_Factor;
-
-extern KF_1Dimen_Factor kfMPU;					//针对于MPU6050使用一维卡尔曼滤波
+} kf_2deriv_factor;
 	
 //结构体成员初始化
-static void KF_1Dfactor_Init (KF_1Dimen_Factor *kf);	
-static void KF_2Dfactor_Init (KF_2Dimen_Factor *kf);
+static void KF_1DerivFactor_Init (kf_1deriv_factor *kf);	
+static void KF_2DerivFactor_Init (kf_2deriv_factor *kf);
 
 //滤波处理
-extern float KalmanFilter1D_Calcus (float mes, KF_1Dimen_Factor *kfstr);
-extern __packed float* KalmanFilter2D_Calcus (float mes, KF_2Dimen_Factor *kfstr);
+extern float Kalman_1DerivFilter (float mes, kf_1deriv_factor *kfstr);
+extern __packed float* Kalman_2DerivFilter (float mes, kf_2deriv_factor *kfstr);
 
 //====================================================================================================
 //code by </MATRIX>@Neod Anderjon

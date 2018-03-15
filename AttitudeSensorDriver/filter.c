@@ -4,10 +4,8 @@
 //====================================================================================================
 //DSP DF(数字信号处理，数字滤波器)
 
-KF_1Dimen_Factor kfMPU;									//结构体初始化				
-
 //卡尔曼一阶因子初始化
-static void KF_1Dfactor_Init (KF_1Dimen_Factor *kf)
+static void KF_1DerivFactor_Init (kf_1deriv_factor *kf)
 {
 	/*
 		卡尔曼滤波参数的调整：
@@ -30,7 +28,7 @@ static void KF_1Dfactor_Init (KF_1Dimen_Factor *kf)
 }	
 
 //卡尔曼二阶因子初始化
-static void KF_2Dfactor_Init (KF_2Dimen_Factor *kf)
+static void KF_2DerivFactor_Init (kf_2deriv_factor *kf)
 {
 	/*
 		卡尔曼滤波参数的调整：
@@ -68,9 +66,9 @@ static void KF_2Dfactor_Init (KF_2Dimen_Factor *kf)
 	一阶卡尔曼滤波
 	传参：输入测量值，卡尔曼一阶结构体指针
 */
-float KalmanFilter1D_Calcus (float mes, KF_1Dimen_Factor *kfstr)
+float Kalman_1DerivFilter (float mes, kf_1deriv_factor *kfstr)
 {	
-	KF_1Dfactor_Init(kfstr);							
+	KF_1DerivFactor_Init(kfstr);							
 	
 	kfstr -> x = mes;									
 	//状态预测
@@ -94,12 +92,12 @@ float KalmanFilter1D_Calcus (float mes, KF_1Dimen_Factor *kfstr)
 	二阶卡尔曼滤波
 	传参：输入测量值，卡尔曼二阶结构体指针
 */
-__packed float* KalmanFilter2D_Calcus (float mes, KF_2Dimen_Factor *kfstr)
+__packed float* Kalman_2DerivFilter (float mes, kf_2deriv_factor *kfstr)
 {
 	float mat1, mat2, mat3;
 	__packed float* res;
 	
-	KF_2Dfactor_Init(kfstr);							//初始化结构体成员
+	KF_2DerivFactor_Init(kfstr);						
 
 	//滤波变量赋值
 	kfstr -> x[0] = mes;		

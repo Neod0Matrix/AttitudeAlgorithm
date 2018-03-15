@@ -6,6 +6,7 @@
 
 GyroAccelStructure gas;
 EulerAngleStructure eas;
+kf_1deriv_factor mpudmp_kf;											
 volatile float MPU_GlobalTemp;
 
 //陀螺仪数据结构体初始化
@@ -362,13 +363,15 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 			+ *(qbias + 1) * *(qbias + 1) - *(qbias + 2) * *(qbias + 2) 
 			- *(qbias + 3) * *(qbias + 3)) * RadTransferDegree;
 		
-		/* kalman filter dsp and unit transfer. */
+		/* 	kalman filter dsp and unit transfer, 
+		 *	because use dmp library, use 1-derivative filter. 
+		**/
 		AngleRangeLimitExcess(ea -> pitch);	
-		ea -> pitch = KalmanFilter1D_Calcus(ea -> pitch, &kfMPU);
+		ea -> pitch = Kalman_1DerivFilter(ea -> pitch, &mpudmp_kf);
 		AngleRangeLimitExcess(ea -> roll);
-		ea -> roll = KalmanFilter1D_Calcus(ea -> roll, &kfMPU);
+		ea -> roll = Kalman_1DerivFilter(ea -> roll, &mpudmp_kf);
 		AngleRangeLimitExcess(ea -> yaw);
-		ea -> yaw = KalmanFilter1D_Calcus(ea -> yaw, &kfMPU);
+		ea -> yaw = Kalman_1DerivFilter(ea -> yaw, &mpudmp_kf);
 		
 		/*
 		__ShellHeadSymbol__;

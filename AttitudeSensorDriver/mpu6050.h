@@ -405,8 +405,11 @@ typedef __packed struct
 	volatile float yaw;										//z轴
 } EulerAngleStructure;
 extern EulerAngleStructure eas;
-static void EulerAngleStructureInit (EulerAngleStructure *ea);
 
+static void EulerAngleStructureInit (EulerAngleStructure *ea);
+//DMP单值滤波，调用filter.c函数
+extern kf_1deriv_factor mpudmp_kf;							
+//全局MPU温度
 extern volatile float MPU_GlobalTemp;
 
 //MPU6050操作函数
