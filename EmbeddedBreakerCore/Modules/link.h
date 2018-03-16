@@ -14,7 +14,6 @@
 #include "dmpmap.h"
 #include "inv_mpu_dmp_motion_driver.h"				
 #include "inv_mpu.h"
-#include "filter.h"											//滤波器
 #include "mpu6050.h"										//MPU6050底层驱动及上层应用
 
 //模块声明
