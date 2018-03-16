@@ -6,7 +6,8 @@
 
 GyroAccelStructure gas;
 EulerAngleStructure eas;
-kf_1deriv_factor mpudmp_kf;											
+kf_1deriv_factor mpudmp_kf;	
+kf_1deriv_factor mputemp_kf;
 volatile float MPU_GlobalTemp;
 
 //陀螺仪数据结构体初始化
@@ -261,6 +262,10 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	}		
 	U1SD("Successfully\r\n");	
 	
+	//卡尔曼滤波因子初始化
+	KF_1DerivFactor_Init(&mpudmp_kf);
+	KF_1DerivFactor_Init(&mputemp_kf);
+	
 	return False;
 }
 
@@ -305,14 +310,9 @@ static float MPU6050_ReadTemperature (void)
 	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, buf); 
     raw = ((u16)*(buf + 0) << 8) | *(buf + 1); 
 	myfree(buf);
-	//here transfer to degree celsius
-    temp = 36.53f + ((double)raw) / 340.f; 
-	/* print test visual 
-	if (No_Data_Receive && PC_Switch == PC_Enable)
-	{
-		printf("\r\nMPU Temperature: %.2f\r\n", temp);
-		usart1WaitForDataTransfer();		
-	}*/
+   	//此处转换为摄氏度
+	temp = Kalman_1DerivFilter(
+		(36.53f + ((double)raw) / 340.f), &mputemp_kf);		
 	
 	return temp;
 }
@@ -365,13 +365,13 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		
 		/* 	kalman filter dsp and unit transfer, 
 		 *	because use dmp library, use 1-derivative filter. 
-		**/
-		AngleRangeLimitExcess(ea -> pitch);	
-		ea -> pitch = Kalman_1DerivFilter(ea -> pitch, &mpudmp_kf);
-		AngleRangeLimitExcess(ea -> roll);
-		ea -> roll = Kalman_1DerivFilter(ea -> roll, &mpudmp_kf);
-		AngleRangeLimitExcess(ea -> yaw);
-		ea -> yaw = Kalman_1DerivFilter(ea -> yaw, &mpudmp_kf);
+		**/	
+		ea -> pitch = Kalman_1DerivFilter(
+			AngleRangeLimitExcess(ea -> pitch), &mpudmp_kf);
+		ea -> roll = Kalman_1DerivFilter(
+			AngleRangeLimitExcess(ea -> roll), &mpudmp_kf);
+		ea -> yaw = Kalman_1DerivFilter(
+			AngleRangeLimitExcess(ea -> yaw), &mpudmp_kf);
 		
 		/*
 		__ShellHeadSymbol__;

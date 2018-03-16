@@ -408,7 +408,8 @@ extern EulerAngleStructure eas;
 
 static void EulerAngleStructureInit (EulerAngleStructure *ea);
 //DMP单值滤波，调用filter.c函数
-extern kf_1deriv_factor mpudmp_kf;							
+extern kf_1deriv_factor mpudmp_kf;			
+extern kf_1deriv_factor mputemp_kf;
 //全局MPU温度
 extern volatile float MPU_GlobalTemp;
 
