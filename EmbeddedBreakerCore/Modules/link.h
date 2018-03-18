@@ -19,7 +19,7 @@
 //模块声明
 #define _Modules_Type_			"SDP"						//模块类型
 #define _Modules_Name_			"AtitudeAlgorithm"			//模块名称
-#define _Modules_Version_ 		"v0p4_LTE"					//长期演进版
+#define _Modules_Version_ 		"v0p5_LTE"					//长期演进版
 
 //模块使用的协议链接，尽量整合到一条
 #define MDLS					0x1A
