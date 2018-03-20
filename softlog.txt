@@ -23,3 +23,4 @@ v0p4_LTE:
 v0p5_LTE:
 	修复OLED显示乱屏bug
 	修复OLED切屏不同步bug
+	添加串口采集数据

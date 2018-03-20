@@ -385,6 +385,8 @@ typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Tri
 #define AngleRangeLimitExcess(axis)			(axis = (axis < 0)? axis += 360:axis)
 #endif
 
+extern u8 *readRegCache;									//寄存器读取缓存
+
 /* 	I2C read data process will lead to data change quickly, 
 	use volatile to pause compiler optimize member variable. 
 **/
@@ -408,8 +410,7 @@ extern EulerAngleStructure eas;
 
 static void EulerAngleStructureInit (EulerAngleStructure *ea);
 //DMP单值滤波，调用filter.c函数
-extern kf_1deriv_factor mpudmp_kf;			
-extern kf_1deriv_factor mputemp_kf;
+extern kf_1deriv_factor mpudmp_kf, mputemp_kf;			
 //全局MPU温度
 extern volatile float MPU_GlobalTemp;
 

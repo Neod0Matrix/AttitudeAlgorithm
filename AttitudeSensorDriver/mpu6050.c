@@ -6,9 +6,9 @@
 
 GyroAccelStructure gas;
 EulerAngleStructure eas;
-kf_1deriv_factor mpudmp_kf;	
-kf_1deriv_factor mputemp_kf;
+kf_1deriv_factor mpudmp_kf, mputemp_kf;	
 volatile float MPU_GlobalTemp;
+u8 *readRegCache;
 
 //陀螺仪数据结构体初始化
 static void GyroAccelStructureInit (GyroAccelStructure *ga)
@@ -267,49 +267,39 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	KF_1DerivFactor_Init(&mputemp_kf);
 	
 	return False;
-}
+} 
 
 //MPU获取陀螺仪加速度计数据
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 {
-    u8 *buf; 
-	
-	buf = (u8*)mymalloc(sizeof(u8) * 6);
+	readRegCache = (u8*)mymalloc(sizeof(u8) * 6);
 	//读陀螺仪
-	if (!i2cRead(MPUDEVADDR, MPU6050_RA_GYRO_XOUT_H, 6, buf))
+	if (!i2cRead(MPUDEVADDR, MPU6050_RA_GYRO_XOUT_H, 6, readRegCache))
 	{
-		ga -> gx = ((u16)*(buf + 0) << 8) | *(buf + 1);  
-		ga -> gy = ((u16)*(buf + 2) << 8) | *(buf + 3);  
-		ga -> gz = ((u16)*(buf + 4) << 8) | *(buf + 5);
+		ga -> gx = ((u16)*(readRegCache + 0) << 8) | *(readRegCache + 1);  
+		ga -> gy = ((u16)*(readRegCache + 2) << 8) | *(readRegCache + 3);  
+		ga -> gz = ((u16)*(readRegCache + 4) << 8) | *(readRegCache + 5);
 	} 	
 	//读加速度
-	if (!i2cRead(MPUDEVADDR, MPU6050_RA_ACCEL_XOUT_H, 6, buf))
+	if (!i2cRead(MPUDEVADDR, MPU6050_RA_ACCEL_XOUT_H, 6, readRegCache))
 	{
-		ga -> ax = ((u16)*(buf + 0) << 8) | *(buf + 1);  
-		ga -> ay = ((u16)*(buf + 2) << 8) | *(buf + 3); 
-		ga -> az = ((u16)*(buf + 4) << 8) | *(buf + 5);
+		ga -> ax = ((u16)*(readRegCache + 0) << 8) | *(readRegCache + 1);  
+		ga -> ay = ((u16)*(readRegCache + 2) << 8) | *(readRegCache + 3); 
+		ga -> az = ((u16)*(readRegCache + 4) << 8) | *(readRegCache + 5);
 	} 
-	myfree(buf);
-	/* print test visual 
-	if (No_Data_Receive && PC_Switch == PC_Enable)
-	{
-		printf("\r\ngx: %8d | gy: %8d | gz: %8d\r\n", ga -> gx, ga -> gy, ga -> gz);
-		printf("\r\nax: %8d | ay: %8d | az: %8d\r\n", ga -> ax, ga -> ay, ga -> az);
-		usart1WaitForDataTransfer();		
-	}*/
+	myfree(readRegCache);
 }
 
 //读取MPU6050内置温度传感器数据
 static float MPU6050_ReadTemperature (void)
 {	
-	u8 *buf; 
     volatile short raw;
 	volatile float temp;
 	
-	buf = (u8*)mymalloc(sizeof(u8) * 2);
-	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, buf); 
-    raw = ((u16)*(buf + 0) << 8) | *(buf + 1); 
-	myfree(buf);
+	readRegCache = (u8*)mymalloc(sizeof(u8) * 2);
+	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, readRegCache); 
+    raw = ((u16)*(readRegCache + 0) << 8) | *(readRegCache + 1); 
+	myfree(readRegCache);
    	//此处转换为摄氏度
 	temp = Kalman_1DerivFilter(
 		(36.53f + ((double)raw) / 340.f), &mputemp_kf);		
@@ -372,16 +362,6 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 			AngleRangeLimitExcess(ea -> roll), &mpudmp_kf);
 		ea -> yaw = Kalman_1DerivFilter(
 			AngleRangeLimitExcess(ea -> yaw), &mpudmp_kf);
-		
-		/*
-		__ShellHeadSymbol__;
-		if (No_Data_Receive && PC_Switch == PC_Enable)
-		{
-			printf("Euler Angle USART Outputs: [Pitch: %6.2f | Roll: %6.2f | Yaw: %6.2f]\r\n", 
-					ea -> pitch, ea -> roll, ea -> yaw);			
-			usart1WaitForDataTransfer();		
-		}
-		*/
 	
 		return 0;
 	}

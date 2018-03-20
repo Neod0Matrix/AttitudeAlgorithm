@@ -28,7 +28,42 @@ void Modules_urcDebugHandler (u8 ed_status, Modules_SwitchNbr sw_type)
 //协议调用指令响应，链接到OrderResponse_Handler函数
 void Modules_ProtocolTask (void)
 {
+	char* aa_dtbuf;
 	
+#define AAPrintCacheSpace	250u
+	//串口采集数据
+	U1SD("Gather Attitude Algorithm Result:\r\n");
+	aa_dtbuf = (char*)mymalloc(sizeof(char) * AAPrintCacheSpace);
+	if (SendDataCondition && PC_Switch == PC_Enable)
+	{
+		//欧拉角读取
+		snprintf(aa_dtbuf, AAPrintCacheSpace, 
+			("Euler Angle USART Outputs ->\r\n\
+			[\r\n\
+				Pitch(x): 	%8.4f Degree\r\n\
+				Roll(y): 	%8.4f Degree\r\n\
+				Yaw(z): 	%8.4f Degree\r\n\
+			]\r\n"), 
+			eas.pitch, eas.roll, eas.yaw);
+		printf("%s", aa_dtbuf);	
+		usart1WaitForDataTransfer();	
+		//原始数据及摄氏温度
+		snprintf(aa_dtbuf, AAPrintCacheSpace, 
+			("MPU Original Data ->\r\n\
+			[\r\n\
+				Gyro_X: 	%8d\r\n\
+				Gyro_Y: 	%8d\r\n\
+				Gyro_Z: 	%8d\r\n\
+				Accel_X: 	%8d\r\n\
+				Accel_Y: 	%8d\r\n\
+				Accel_Z: 	%8d\r\n\
+				Temp:		%6.2f Celsius\r\n\
+			]\r\n"), 
+			gas.gx, gas.gy, gas.gz, gas.ax, gas.ay, gas.az, MPU_GlobalTemp);
+		printf("%s", aa_dtbuf);	
+		usart1WaitForDataTransfer();
+		myfree(aa_dtbuf);
+	}
 }
 
 //OLED常量显示屏，链接到OLED_DisplayInitConst和UIScreen_DisplayHandler函数
