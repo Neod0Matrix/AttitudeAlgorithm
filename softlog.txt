@@ -22,3 +22,4 @@ v0p4_LTE:
 	添加MPU温度卡尔曼滤波
 v0p5_LTE:
 	修复OLED显示乱屏bug
+	修复OLED切屏不同步bug

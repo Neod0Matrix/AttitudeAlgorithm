@@ -431,11 +431,12 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 		{
 			/* chip inner temperature read. */
 			MPU_GlobalTemp = MPU6050_ReadTemperature();		
-			/* 	real-time update oled display, 
+			/* 	Real-time update oled display, 
 			 * 	and oled display function include delay, 
 			 *	not support add it in here. 
+			 * 	If use, Call API structure variable ui_oled.ui_confirm_alter.
 			**/
-			if (MOE_Switch == MOE_Enable && oledScreenFlag == 4)
+			if (MOE_Switch == MOE_Enable && ui_oled.ui_confirm_alter == 4u)
 				OLED_DisplayAA(&eas);
 			/* original chip data read. */
 			MPU6050_GetGyroAccelOriginData(&gas);
