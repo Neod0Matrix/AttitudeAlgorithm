@@ -24,3 +24,7 @@ v0p5_LTE:
 	修复OLED显示乱屏bug
 	修复OLED切屏不同步bug
 	添加串口采集数据
+	优化数据处理计算
+	更改API调用
+	修复OLED显示欧拉角乱码bug(IIC时延出错)
+	

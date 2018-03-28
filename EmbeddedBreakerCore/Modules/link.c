@@ -47,7 +47,6 @@ void Modules_ProtocolTask (void)
 			eas.pitch, eas.roll, eas.yaw);
 		printf("%s", aa_dtbuf);	
 		usart1WaitForDataTransfer();	
-		//原始数据及摄氏温度
 		snprintf(aa_dtbuf, AAPrintCacheSpace, 
 			("MPU Original Data ->\r\n\
 			[\r\n\
@@ -70,9 +69,9 @@ void Modules_ProtocolTask (void)
 void OLED_ScreenModules_Const (void)
 {
 	snprintf((char*)oled_dtbuf, OneRowMaxWord, (" DMP Attitude  "));
-	OLED_ShowString(strPos(0u), ROW1, (const u8*)oled_dtbuf, Font_Size);
+	OLED_ShowString(strPos(0u), ROW1, (StringCache*)oled_dtbuf, Font_Size);
 	snprintf((char*)oled_dtbuf, OneRowMaxWord, (" Algorithm Demo"));
-	OLED_ShowString(strPos(0u), ROW2, (const u8*)oled_dtbuf, Font_Size);
+	OLED_ShowString(strPos(0u), ROW2, (StringCache*)oled_dtbuf, Font_Size);
 	OLED_Refresh_Gram();
 }
 
@@ -144,7 +143,8 @@ void EXTI15_10_IRQHandler (void)
 //模块非中断任务，链接到local_taskmgr.c，默认添加到第二任务
 void Modules_NonInterruptTask (void)
 {
-	
+	//MPU原始数据
+	MPU6050_GetGyroAccelOriginData(&gas);
 }
 
 //模块中断任务，链接到time_base.c TIM2_IRQHandler函数中

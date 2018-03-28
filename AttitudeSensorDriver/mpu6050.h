@@ -382,37 +382,43 @@ typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Tri
 #define RadTransferDegree					57.3f			//180/pi，弧度制转角度制系数
 //反向翻转(限制欧拉角取值为0-360度)
 #ifndef AngleRangeLimitExcess
-#define AngleRangeLimitExcess(axis)			(axis = (axis < 0)? axis += 360:axis)
+#define AngleRangeLimitExcess(axis)			(axis = (axis < 0.f)? axis += 360.f:axis)
 #endif
 
 extern u8 *readRegCache;									//寄存器读取缓存
 
 /* 	I2C read data process will lead to data change quickly, 
-	use volatile to pause compiler optimize member variable. 
+	may need use volatile to pause compiler optimize member variable. 
 **/
 //陀螺仪加速度计结构体
 typedef __packed struct 
 {
-	volatile short gx, gy, gz;								//三轴陀螺仪
-	volatile short ax, ay, az;								//三轴加速度计
+	short gx, gy, gz;										//三轴陀螺仪
+	short ax, ay, az;										//三轴加速度计
 } GyroAccelStructure;
 extern GyroAccelStructure gas;
 static void GyroAccelStructureInit (GyroAccelStructure *ga);
 
+//DMP解算结果
+typedef enum
+{
+	mpu_read_dmp_fatal 	= 1,								//DMP读取失败
+	algorithm_succeed	= 0,								//解算成功
+	algorithm_fatal		= 2,								//解算失败
+} dmpAlgorithmResult;
+
 //欧拉角结构体
 typedef __packed struct 
 {
-	volatile float pitch;									//x轴
-	volatile float roll;									//y轴
-	volatile float yaw;										//z轴
+	float pitch;											//x轴
+	float roll;												//y轴
+	float yaw;												//z轴
 } EulerAngleStructure;
 extern EulerAngleStructure eas;
-
 static void EulerAngleStructureInit (EulerAngleStructure *ea);
-//DMP单值滤波，调用filter.c函数
-extern kf_1deriv_factor mpudmp_kf, mputemp_kf;			
-//全局MPU温度
-extern volatile float MPU_GlobalTemp;
+
+extern kf_1deriv_factor mpudmp_kf, mputemp_kf;				//DMP单值滤波，调用filter.c函数
+extern volatile float MPU_GlobalTemp;						//全局MPU温度
 
 //MPU6050操作函数
 static u8 MPU6050_SetDigitalLowFilter (u16 lpf);
@@ -428,7 +434,7 @@ float invSqrt (float x);
 static u16 inv_row_2_scale (const signed char *row);
 static u16 inv_orientation_matrix_to_scalar (const signed char *mtx);
 static Bool_ClassType run_self_test (void);
-uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea);
+dmpAlgorithmResult dmpAttitudeAlgorithm (EulerAngleStructure *ea);
 void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag);					
 void OLED_DisplayAA (EulerAngleStructure *ea);
 void TIM3_IMURealTimeWork (FunctionalState control);

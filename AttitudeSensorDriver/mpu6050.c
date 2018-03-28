@@ -94,10 +94,8 @@ static u16 inv_orientation_matrix_to_scalar (const signed char *mtx)
 static Bool_ClassType run_self_test (void)
 {
     int result;
-    long *gyro, *accel;
+    long gyro[3], accel[3];
 	
-	gyro = (long*)mymalloc(sizeof(long) * 3);
-	accel = (long*)mymalloc(sizeof(long) * 3);
     result = mpu_run_self_test(gyro, accel);
     if (result == 0x3) 							//MPU6500: 0x7
 	{
@@ -109,13 +107,11 @@ static Bool_ClassType run_self_test (void)
         *(gyro + 1) = (long)(*(gyro + 1) * sens);
         *(gyro + 2) = (long)(*(gyro + 2) * sens);
         dmp_set_gyro_bias(gyro);
-		myfree(gyro);
         mpu_get_accel_sens(&accel_sens);
         *(accel + 0) *= accel_sens;
         *(accel + 1) *= accel_sens;
         *(accel + 2) *= accel_sens;
         dmp_set_accel_bias(accel);
-		myfree(accel);
 		
 		return False;
     }
@@ -209,24 +205,24 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	GyroAccelStructureInit(&gas);
 	EulerAngleStructureInit(&eas);
 	invI2C_IO_Init();													//I2C port init
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 0x80);		//reset device
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		0x80);	//reset device
 	delay_ms(100);
 	//wake up device
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, MPU6050_CLOCK_INTERNAL);		 
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 3 << 3);	//gyroscope sensor, ±2000dps
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 0 << 3);	//accelerator sensor, ±2g
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		MPU6050_CLOCK_INTERNAL);		 
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 	3 << 3);//gyroscope sensor, ±2000dps
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 	0 << 3);//accelerator sensor, ±2g
 	MPU6050_SetSampleRate(MPUDataReadFreq);								//setting sample rate
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 0x00);		//setting all interrupt, 0x00 is close
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 0x00);		//setting device I2C master mode, 0x00 is close
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_FIFO_EN, 0x01);			//setting data transfer FIFO, 0x00 is close
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_PIN_CFG, 0x80);		//INT pin low level valid
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 		0x00);	//setting all interrupt, 0x00 is close
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 		0x00);	//setting device I2C master mode, 0x00 is close
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_FIFO_EN, 		0x01);	//setting data transfer FIFO, 0x00 is close
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_PIN_CFG, 	0x80);	//INT pin low level valid
 	/* read device id, if success, setting clock. */
 	if (invI2C_ReadDevByte(MPUDEVADDR, MPU6050_RA_WHO_AM_I) == MPUDEVADDR)
 	{
 		//setting CLKSEL, PLL X-axis, default inner 8M, low precision
-		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, MPU6050_CLOCK_PLL_XGYRO);
+		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 	MPU6050_CLOCK_PLL_XGYRO);
 		//setting accelerator and gyroscope all work		
-		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_2, 0x00);		
+		invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_2, 	0x00);		
 		MPU6050_SetSampleRate(MPUDataReadFreq);
 	}
 	else
@@ -293,18 +289,18 @@ void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 //读取MPU6050内置温度传感器数据
 static float MPU6050_ReadTemperature (void)
 {	
-    volatile short raw;
-	volatile float temp;
+    short raw_temp;
+	float res_temp;
 	
 	readRegCache = (u8*)mymalloc(sizeof(u8) * 2);
 	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, readRegCache); 
-    raw = ((u16)*(readRegCache + 0) << 8) | *(readRegCache + 1); 
+    raw_temp = ((u16)*(readRegCache + 0) << 8) | *(readRegCache + 1); 
 	myfree(readRegCache);
-   	//此处转换为摄氏度
-	temp = Kalman_1DerivFilter(
-		(36.53f + ((double)raw) / 340.f), &mputemp_kf);		
+   	//此处转换为摄氏度进行卡尔曼滤波
+	res_temp = Kalman_1DerivFilter(
+		(36.53f + ((double)raw_temp) / 340.f), &mputemp_kf);		
 	
-	return temp;
+	return res_temp;
 }
 
 /**
@@ -312,7 +308,7 @@ static float MPU6050_ReadTemperature (void)
   * @param  *ea: A EulerAngleStructure structure type point.
   * @retval Calculate euler successfully or fatal.
   */
-uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
+dmpAlgorithmResult dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 {	
 	u8 i, more;
 	long quat[4];											
@@ -331,7 +327,7 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		/* here should give fatal read process up, give print, it will elapse time. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope Read DMP Fatal\r\n");
 		
-		return 1;
+		return mpu_read_dmp_fatal;
 	}
 	if (sensors & INV_WXYZ_QUAT)
 	{    
@@ -339,38 +335,37 @@ uint8_t dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 		for (i = 0; i < 4; i++)
 			*(qbias + i) = *(quat + i) / q30;
 		
-		/* 	4 quats number matrix calculate and data result calibration. */
+		/* 	4 quats number matrix calculate and data result calibration. 
+		 * 	Kalman filter dsp, because use dmp library, use 1-derivative filter. 
+		 *	Base axis transfer, pick minus up.
+		**/	
 		/* -pi/2<=pitch<=pi/2. */
 		ea -> pitch = (float)asin(-2 * *(qbias + 1) * *(qbias + 3) 
-			+ 2 * *(qbias + 0) * *(qbias + 2)) * RadTransferDegree; 	
+			+ 2 * *(qbias + 0) * *(qbias + 2)) * RadTransferDegree; 
+		ea -> pitch = Kalman_1DerivFilter(ea -> pitch, &mpudmp_kf);
+		AngleRangeLimitExcess(ea -> pitch);
 		/* -pi<=roll<=pi. */
-		ea -> roll = (float)atan2(2 * *(qbias + 2) * *(qbias + 3) 
-			+ 2 * *(qbias + 0) * *(qbias + 1), -2 * *(qbias + 1) * 
-			*(qbias + 1) - 2 * *(qbias + 2) * *(qbias + 2) + 1) * RadTransferDegree; 
+		ea -> roll 	= (float)atan2(2 * *(qbias + 2) * *(qbias + 3) 
+			+ 2 * *(qbias + 0) * *(qbias + 1), -2 * pow(*(qbias + 1), 2)
+			- 2 * pow(*(qbias + 2), 2) + 1) * RadTransferDegree; 
+		ea -> roll 	= Kalman_1DerivFilter(ea -> roll, &mpudmp_kf);
+		AngleRangeLimitExcess(ea -> roll);
 		/* -pi<=yaw<=pi. */
-		ea -> yaw = (float)atan2(2 * (*(qbias + 1) * *(qbias + 2) 
-			+ *(qbias + 0) * *(qbias + 3)), *(qbias + 0) * *(qbias + 0) 
-			+ *(qbias + 1) * *(qbias + 1) - *(qbias + 2) * *(qbias + 2) 
-			- *(qbias + 3) * *(qbias + 3)) * RadTransferDegree;
+		ea -> yaw 	= (float)atan2(2 * (*(qbias + 1) * *(qbias + 2) 
+			+ *(qbias + 0) * *(qbias + 3)), pow(*(qbias + 0), 2) 
+			+ pow(*(qbias + 1), 2) - pow(*(qbias + 2), 2)
+			- pow(*(qbias + 3), 2)) * RadTransferDegree;
+		ea -> yaw 	= Kalman_1DerivFilter(ea -> yaw, &mpudmp_kf);
+		AngleRangeLimitExcess(ea -> yaw);
 		
-		/* 	kalman filter dsp and unit transfer, 
-		 *	because use dmp library, use 1-derivative filter. 
-		**/	
-		ea -> pitch = Kalman_1DerivFilter(
-			AngleRangeLimitExcess(ea -> pitch), &mpudmp_kf);
-		ea -> roll = Kalman_1DerivFilter(
-			AngleRangeLimitExcess(ea -> roll), &mpudmp_kf);
-		ea -> yaw = Kalman_1DerivFilter(
-			AngleRangeLimitExcess(ea -> yaw), &mpudmp_kf);
-	
-		return 0;
+		return algorithm_succeed;
 	}
 	else
 	{
 		/* give here up too, print will elapse time. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope DMP Algorithm Fatal\r\n");
 		
-		return 2;
+		return algorithm_fatal;
 	}
 }
 
@@ -383,10 +378,10 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 {
 	//显示俯仰Pitch角度(x轴)、显示翻滚Roll角度(y轴)
 	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P%6.2f R%6.2f"), ea -> pitch, ea -> roll);
-	OLED_ShowString(strPos(0u), ROW1, (const u8*)oled_dtbuf, Font_Size);
+	OLED_ShowString(strPos(0u), ROW1, (const char*)oled_dtbuf, Font_Size);
 	//显示航向Yaw角度(z轴)、显示MPU芯片温度
 	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y%6.2f T%6.2f"), ea -> yaw, MPU_GlobalTemp);
-	OLED_ShowString(strPos(0u), ROW2, (const u8*)oled_dtbuf, Font_Size);
+	OLED_ShowString(strPos(0u), ROW2, (const char*)oled_dtbuf, Font_Size);
 	OLED_Refresh_Gram();
 }
 
@@ -416,10 +411,10 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 			 *	not support add it in here. 
 			 * 	If use, Call API structure variable ui_oled.ui_confirm_alter.
 			**/
-			if (MOE_Switch == MOE_Enable && ui_oled.ui_confirm_alter == 4u)
+			if (MOE_Switch == MOE_Enable && ui_oled.ui_screen_nbr == 5)
 				OLED_DisplayAA(&eas);
-			/* original chip data read. */
-			MPU6050_GetGyroAccelOriginData(&gas);
+			else
+				return;
 		}
 	}
 }
