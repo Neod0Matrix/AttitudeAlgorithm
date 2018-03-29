@@ -324,7 +324,7 @@ dmpAlgorithmResult dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	**/
 	if (dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more))
 	{
-		/* here should give fatal read process up, give print, it will elapse time. */
+		/* here read fatal frequence is very high. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope Read DMP Fatal\r\n");
 		
 		return mpu_read_dmp_fatal;
@@ -362,7 +362,7 @@ dmpAlgorithmResult dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	}
 	else
 	{
-		/* give here up too, print will elapse time. */
+		/* more step are successfully. */
 		//__ShellHeadSymbol__; U1SD("Gyroscope DMP Algorithm Fatal\r\n");
 		
 		return algorithm_fatal;
@@ -411,11 +411,13 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 			 *	not support add it in here. 
 			 * 	If use, Call API structure variable ui_oled.ui_confirm_alter.
 			**/
-			if (MOE_Switch == MOE_Enable && ui_oled.ui_screen_nbr == 5)
+			if (MOE_Switch == MOE_Enable && ui_oled.ui_confirm_alter == 5)
 				OLED_DisplayAA(&eas);
 			else
 				return;
 		}
+		else
+			return;
 	}
 }
 
