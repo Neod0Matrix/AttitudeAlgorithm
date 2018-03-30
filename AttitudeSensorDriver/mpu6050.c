@@ -378,10 +378,10 @@ void OLED_DisplayAA (EulerAngleStructure *ea)
 {
 	//显示俯仰Pitch角度(x轴)、显示翻滚Roll角度(y轴)
 	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P%6.2f R%6.2f"), ea -> pitch, ea -> roll);
-	OLED_ShowString(strPos(0u), ROW1, (const char*)oled_dtbuf, Font_Size);
+	OLED_ShowString(strPos(0u), ROW1, (StringCache*)oled_dtbuf, Font_Size);
 	//显示航向Yaw角度(z轴)、显示MPU芯片温度
 	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y%6.2f T%6.2f"), ea -> yaw, MPU_GlobalTemp);
-	OLED_ShowString(strPos(0u), ROW2, (const char*)oled_dtbuf, Font_Size);
+	OLED_ShowString(strPos(0u), ROW2, (StringCache*)oled_dtbuf, Font_Size);
 	OLED_Refresh_Gram();
 }
 
@@ -405,13 +405,9 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 		if (!dmpAttitudeAlgorithm(&eas)) 
 		{
 			/* chip inner temperature read. */
-			MPU_GlobalTemp = MPU6050_ReadTemperature();		
-			/* 	Real-time update oled display, 
-			 * 	and oled display function include delay, 
-			 *	not support add it in here. 
-			 * 	If use, Call API structure variable ui_oled.ui_confirm_alter.
-			**/
-			if (MOE_Switch == MOE_Enable && ui_oled.ui_confirm_alter == 5)
+			MPU_GlobalTemp = MPU6050_ReadTemperature();	
+			//使用URC来配置显示更新模式
+			if (ui_oled.ui_confirm_alter == 5 && UIRef_ModeFlag == Quick_Ref)
 				OLED_DisplayAA(&eas);
 			else
 				return;

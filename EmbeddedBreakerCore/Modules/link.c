@@ -16,13 +16,13 @@ void Modules_UniResConfig (void)
 //模块选项映射表，链接到urcMapTable_Print函数
 void Modules_URCMap (void)
 {
-	
+
 }
 
 //选项处理，链接到pclURC_DebugHandler函数
 void Modules_urcDebugHandler (u8 ed_status, Modules_SwitchNbr sw_type)
 {
-   //使用前请先更新Modules_SwitchNbr内容
+	//使用前请先更新Modules_SwitchNbr内容
 }
 
 //协议调用指令响应，链接到OrderResponse_Handler函数
@@ -81,8 +81,15 @@ void OLED_DisplayModules (u8 page)
 	switch (page)
 	{
 	case 5:
-		//欧拉角显示需要快速，直接将OLED更新放到中断中完成
-		//OLED_DisplayAA(&eas);				
+		/*
+			欧拉角显示需要快速，直接将OLED更新放到中断中完成
+			但包含延时函数的东西放到中断中会有各种神奇的现象
+			你需要在代码执行效率和稳定性之间做权衡
+		*/
+		if (UIRef_ModeFlag == Stable_Ref)
+			OLED_DisplayAA(&eas);				
+		else
+			return;
 		break;
 	}
 }
