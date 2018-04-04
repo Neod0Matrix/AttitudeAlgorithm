@@ -248,11 +248,7 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 			Sys_Soft_Reset();
 		}
 		/* once fatal, get error code and retry. */
-		if (No_Data_Receive && PC_Switch == PC_Enable)
-		{
-			printf("Once Fatal Return Code: %d, Retrying\r\n", dmp_res);
-			usart1WaitForDataTransfer();		
-		}
+		U1SD("Once Fatal Return Code: %d, Retrying\r\n", dmp_res);
 		delay_ms(200);
 		dmp_res = mpu_intrinsic_dmp_init();
 	}		

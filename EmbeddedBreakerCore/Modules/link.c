@@ -34,35 +34,30 @@ void Modules_ProtocolTask (void)
 	//串口采集数据
 	U1SD("Gather Attitude Algorithm Result:\r\n");
 	aa_dtbuf = (char*)mymalloc(sizeof(char) * AAPrintCacheSpace);
-	if (SendDataCondition && PC_Switch == PC_Enable)
-	{
-		//欧拉角读取
-		snprintf(aa_dtbuf, AAPrintCacheSpace, 
-			("Euler Angle USART Outputs ->\r\n\
-			[\r\n\
-				Pitch(x): 	%8.4f Degree\r\n\
-				Roll(y): 	%8.4f Degree\r\n\
-				Yaw(z): 	%8.4f Degree\r\n\
-			]\r\n"), 
-			eas.pitch, eas.roll, eas.yaw);
-		printf("%s", aa_dtbuf);	
-		usart1WaitForDataTransfer();	
-		snprintf(aa_dtbuf, AAPrintCacheSpace, 
-			("MPU Original Data ->\r\n\
-			[\r\n\
-				Gyro_X: 	%8d\r\n\
-				Gyro_Y: 	%8d\r\n\
-				Gyro_Z: 	%8d\r\n\
-				Accel_X: 	%8d\r\n\
-				Accel_Y: 	%8d\r\n\
-				Accel_Z: 	%8d\r\n\
-				Temp:		%6.2f Celsius\r\n\
-			]\r\n"), 
-			gas.gx, gas.gy, gas.gz, gas.ax, gas.ay, gas.az, MPU_GlobalTemp);
-		printf("%s", aa_dtbuf);	
-		usart1WaitForDataTransfer();
-		myfree(aa_dtbuf);
-	}
+	//欧拉角读取
+	snprintf(aa_dtbuf, AAPrintCacheSpace, 
+		("Euler Angle USART Outputs ->\r\n\
+		[\r\n\
+			Pitch(x): 	%8.4f Degree\r\n\
+			Roll(y): 	%8.4f Degree\r\n\
+			Yaw(z): 	%8.4f Degree\r\n\
+		]\r\n"), 
+		eas.pitch, eas.roll, eas.yaw);
+	U1SD("%s", aa_dtbuf);	
+	snprintf(aa_dtbuf, AAPrintCacheSpace, 
+		("MPU Original Data ->\r\n\
+		[\r\n\
+			Gyro_X: 	%8d\r\n\
+			Gyro_Y: 	%8d\r\n\
+			Gyro_Z: 	%8d\r\n\
+			Accel_X: 	%8d\r\n\
+			Accel_Y: 	%8d\r\n\
+			Accel_Z: 	%8d\r\n\
+			Temp:		%6.2f Celsius\r\n\
+		]\r\n"), 
+		gas.gx, gas.gy, gas.gz, gas.ax, gas.ay, gas.az, MPU_GlobalTemp);
+	U1SD("%s", aa_dtbuf);	
+	myfree(aa_dtbuf);
 }
 
 //OLED常量显示屏，链接到OLED_DisplayInitConst和UIScreen_DisplayHandler函数
@@ -165,16 +160,17 @@ void Modules_RTC_TaskScheduler (void)
 {
 	/*
 		RTC API:
-			*(rtcWholeData + 0): 年份
-			*(rtcWholeData + 1): 月份
-			*(rtcWholeData + 2): 日
-			*(rtcWholeData + 3): 星期
-			*(rtcWholeData + 4): 时
-			*(rtcWholeData + 5): 分
-			*(rtcWholeData + 6): 秒
+			*(rtcTotalData + 0): 年份
+			*(rtcTotalData + 1): 月份
+			*(rtcTotalData + 2): 日
+			*(rtcTotalData + 3): 星期
+			*(rtcTotalData + 4): 时
+			*(rtcTotalData + 5): 分
+			*(rtcTotalData + 6): 秒
 	*/
 	//example: 设置含有灯光效果的外设休眠
-	if (*(rtcWholeData + 4) >= 1 && *(rtcWholeData + 4) <= 6)
+	if ((*(rtcTotalData + 4) >= 1 
+		&& *(rtcTotalData + 4) <= 6) || *(rtcTotalData + 4) == 0)
 	{
 		OLED_Clear();
 		OLED_Switch = OLED_Disable;

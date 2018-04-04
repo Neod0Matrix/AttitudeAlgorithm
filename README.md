@@ -8,7 +8,7 @@ Copyright
 Update
 ===============
 	
-	最后更新时间: 2018/03/30pm1911
+	最后更新时间: 2018/04/04pm1830
 	详细更新内容见softlog.txt
 
 Project Manual
@@ -44,6 +44,7 @@ Use Manual
 	Optimize for time, One ELF Section per Function
 	更新框架覆盖时不覆盖EmbeddedBreakerCore\Modules目录和外部应用目录
 	建议不要在使用该姿态解算模块时开启OLED自动切屏，影响数据读取实时性
+	为了更好的用户体验，请在本项目config.c中将UIRef_ModeFlag标志置到Quick_Ref
 	
 Inner IO Map
 ===============
