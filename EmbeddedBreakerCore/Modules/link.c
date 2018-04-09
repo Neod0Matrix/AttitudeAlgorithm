@@ -28,36 +28,7 @@ void Modules_urcDebugHandler (u8 ed_status, Modules_SwitchNbr sw_type)
 //协议调用指令响应，链接到OrderResponse_Handler函数
 void Modules_ProtocolTask (void)
 {
-	char* aa_dtbuf;
 	
-#define AAPrintCacheSpace	250u
-	//串口采集数据
-	U1SD("Gather Attitude Algorithm Result:\r\n");
-	aa_dtbuf = (char*)mymalloc(sizeof(char) * AAPrintCacheSpace);
-	//欧拉角读取
-	snprintf(aa_dtbuf, AAPrintCacheSpace, 
-		("Euler Angle USART Outputs ->\r\n\
-		[\r\n\
-			Pitch(x): 	%8.4f Degree\r\n\
-			Roll(y): 	%8.4f Degree\r\n\
-			Yaw(z): 	%8.4f Degree\r\n\
-		]\r\n"), 
-		eas.pitch, eas.roll, eas.yaw);
-	U1SD("%s", aa_dtbuf);	
-	snprintf(aa_dtbuf, AAPrintCacheSpace, 
-		("MPU Original Data ->\r\n\
-		[\r\n\
-			Gyro_X: 	%8d\r\n\
-			Gyro_Y: 	%8d\r\n\
-			Gyro_Z: 	%8d\r\n\
-			Accel_X: 	%8d\r\n\
-			Accel_Y: 	%8d\r\n\
-			Accel_Z: 	%8d\r\n\
-			Temp:		%6.2f Celsius\r\n\
-		]\r\n"), 
-		gas.gx, gas.gy, gas.gz, gas.ax, gas.ay, gas.az, MPU_GlobalTemp);
-	U1SD("%s", aa_dtbuf);	
-	myfree(aa_dtbuf);
 }
 
 //OLED常量显示屏，链接到OLED_DisplayInitConst和UIScreen_DisplayHandler函数
@@ -181,6 +152,42 @@ void Modules_RTC_TaskScheduler (void)
 		OLED_Switch = OLED_Enable;
 		Light_Switch = Light_Enable;
 	}
+}
+
+//模块状态内容打印请求，链接到sta_req.c displaySystemInfo函数中
+void Modules_StatusReqHandler (void)
+{
+	//此项设计可以减少模块指令的多余添加
+	char* aa_dtbuf;
+	
+#define AAPrintCacheSpace	250u
+	//串口采集数据
+	U1SD("Gather Attitude Algorithm Result:\r\n");
+	aa_dtbuf = (char*)mymalloc(sizeof(char) * AAPrintCacheSpace);
+	//欧拉角读取
+	snprintf(aa_dtbuf, AAPrintCacheSpace, 
+		("Euler Angle USART Outputs ->\r\n\
+		[\r\n\
+			Pitch(x): 	%8.4f Degree\r\n\
+			Roll(y): 	%8.4f Degree\r\n\
+			Yaw(z): 	%8.4f Degree\r\n\
+		]\r\n"), 
+		eas.pitch, eas.roll, eas.yaw);
+	U1SD("%s", aa_dtbuf);	
+	snprintf(aa_dtbuf, AAPrintCacheSpace, 
+		("MPU Original Data ->\r\n\
+		[\r\n\
+			Gyro_X: 	%8d\r\n\
+			Gyro_Y: 	%8d\r\n\
+			Gyro_Z: 	%8d\r\n\
+			Accel_X: 	%8d\r\n\
+			Accel_Y: 	%8d\r\n\
+			Accel_Z: 	%8d\r\n\
+			Temp:		%6.2f Celsius\r\n\
+		]\r\n"), 
+		gas.gx, gas.gy, gas.gz, gas.ax, gas.ay, gas.az, MPU_GlobalTemp);
+	U1SD("%s", aa_dtbuf);	
+	myfree(aa_dtbuf);
 }
 
 //====================================================================================================
