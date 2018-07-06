@@ -22,7 +22,7 @@
 #define _Modules_Version_ 		"v0p5_LTE"					//长期演进版
 
 //模块使用的协议链接，尽量整合到一条
-#define MDLS					0x1A
+#define MDLS					0x1B
 #define Modules_Protocol 		{DH, MDLS, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DMAX, DT}
 
 //urc开源链接编号
