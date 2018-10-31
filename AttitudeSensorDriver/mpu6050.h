@@ -385,8 +385,6 @@ typedef enum {IMUINT_Enable = 1, IMUINT_Disable = !IMUINT_Enable} IMU_MPUINT_Tri
 #define AngleRangeLimitExcess(axis)			(axis = (axis < 0.f)? axis += 360.f:axis)
 #endif
 
-extern u8 *readRegCache;									//寄存器读取缓存
-
 /* 	I2C read data process will lead to data change quickly, 
 	may need use volatile to pause compiler optimize member variable. 
 **/

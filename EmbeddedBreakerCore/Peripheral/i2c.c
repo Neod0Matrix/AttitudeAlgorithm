@@ -60,7 +60,8 @@ void i2c_Delay (void)
 	 	循环次数为5时，SCL频率 = 421KHz， SCL高电平时间1.25us，SCL低电平时间2.375us 
 	*/
 	volatile uint8_t i;													//使用volatile字，阻止编译优化
-	for (i = 0; i < 10u; i++);
+	for (i = 0u; i < 5u; ++i);
+	//delay_us(1);
 }
 
 //CPU发起I2C总线启动信号

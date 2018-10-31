@@ -35,7 +35,7 @@ void nQueen_CalculusHandler (void)
 	else if (!queenMatrixWidth)
 		queenMatrixWidth = 8;
 	
-	a = (int*)mymalloc(sizeof(int) * (queenMatrixWidth + 1));		//N皇后问题的皇后所在的行列位置，从1幵始算起，所以加1
+	a = (int *)mymalloc(sizeof(int) * (queenMatrixWidth + 1));		//N皇后问题的皇后所在的行列位置，从1幵始算起，所以加1
 
 	//打印皇后数
 	__ShellHeadSymbol__; 
@@ -108,7 +108,7 @@ void nQueen_CalculusHandler (void)
             i = queenMatrixWidth - 1;    							//开始寻找下一个满足条件的解
         }
     }
-	myfree(a);
+	myfree((void *)a);
 }
 
 //====================================================================================================

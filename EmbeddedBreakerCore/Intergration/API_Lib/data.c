@@ -18,7 +18,7 @@ char* indStr_Catenate (char *s1, char *s2)
 {  
 #define stackSpace	10u									//安全起见，使用安全的C库
 	//动态分配内存，同时警戒溢出
-    char *ind_result = malloc(strlen(s1) + strlen(s2) + 1u);
+    char *ind_result = mymalloc(strlen(s1) + strlen(s2) + 1u);
     
     if (ind_result != NULL)								//确定指针没有越界
 	{

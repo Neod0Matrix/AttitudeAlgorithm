@@ -170,7 +170,7 @@ void Modules_StatusReqHandler (void)
 #define AAPrintCacheSpace	250u
 	//串口采集数据
 	U1SD("Gather Attitude Algorithm Result:\r\n");
-	aa_dtbuf = (char*)mymalloc(sizeof(char) * AAPrintCacheSpace);
+	aa_dtbuf = (char *)mymalloc(sizeof(char) * AAPrintCacheSpace);
 	//欧拉角读取
 	snprintf(aa_dtbuf, AAPrintCacheSpace, 
 		("Euler Angle USART Outputs ->\r\n\
@@ -194,7 +194,7 @@ void Modules_StatusReqHandler (void)
 		]\r\n"), 
 		gas.gx, gas.gy, gas.gz, gas.ax, gas.ay, gas.az, MPU_GlobalTemp);
 	U1SD("%s", aa_dtbuf);	
-	myfree(aa_dtbuf);
+	myfree((void *)aa_dtbuf);
 }
 
 //模块插入到exti.c的PB8外部中断函数EXTI9_5_IRQHandler内，触发外部中断打断

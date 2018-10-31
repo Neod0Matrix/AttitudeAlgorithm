@@ -8,7 +8,6 @@ GyroAccelStructure gas;
 EulerAngleStructure eas;
 kf_1deriv_factor mpudmp_kf, mputemp_kf;	
 volatile float MPU_GlobalTemp;
-u8 *readRegCache;
 
 //陀螺仪数据结构体初始化
 static void GyroAccelStructureInit (GyroAccelStructure *ga)
@@ -264,7 +263,8 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 //MPU获取陀螺仪加速度计数据
 void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 {
-	readRegCache = (u8*)mymalloc(sizeof(u8) * 6);
+	u8 *readRegCache = (u8 *)mymalloc(sizeof(u8) * 6);
+	
 	//读陀螺仪
 	if (!i2cRead(MPUDEVADDR, MPU6050_RA_GYRO_XOUT_H, 6, readRegCache))
 	{
@@ -279,7 +279,7 @@ void MPU6050_GetGyroAccelOriginData (GyroAccelStructure *ga)
 		ga -> ay = ((u16)*(readRegCache + 2) << 8) | *(readRegCache + 3); 
 		ga -> az = ((u16)*(readRegCache + 4) << 8) | *(readRegCache + 5);
 	} 
-	myfree(readRegCache);
+	myfree((void *)readRegCache);
 }
 
 //读取MPU6050内置温度传感器数据
@@ -287,11 +287,11 @@ static float MPU6050_ReadTemperature (void)
 {	
     short raw_temp;
 	float res_temp;
+	u8 *readRegCache = (u8 *)mymalloc(sizeof(u8) * 2);
 	
-	readRegCache = (u8*)mymalloc(sizeof(u8) * 2);
 	i2cRead(MPUDEVADDR, MPU6050_RA_TEMP_OUT_H, 2, readRegCache); 
     raw_temp = ((u16)*(readRegCache + 0) << 8) | *(readRegCache + 1); 
-	myfree(readRegCache);
+	myfree((void *)readRegCache);
    	//此处转换为摄氏度进行卡尔曼滤波
 	res_temp = Kalman_1DerivFilter(
 		(36.53f + ((double)raw_temp) / 340.f), &mputemp_kf);		
@@ -421,7 +421,7 @@ void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 #define Timerx_IRQn				TIM3_IRQn					//定时器中断
 //依据MPUDataReadFreq设定
 #define imu_TogglePeriod		9999u						//定时器自动重装翻转周期
-#define imu_Prescaler			359u						//定时器分频器	
+#define imu_Prescaler			31u							//定时器分频器	
 
 //初始化定时器3用于MPU的实时任务
 void TIM3_IMURealTimeWork (FunctionalState control)  
