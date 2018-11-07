@@ -9,6 +9,13 @@ EulerAngleStructure eas;
 kf_1deriv_factor mpudmp_kf, mputemp_kf;	
 volatile float MPU_GlobalTemp;
 
+/*
+	MPU数据解析频率
+	建议任务不多时设置为150-200(200Hz最高)，任务较多设置为50-100
+	设置超过200会导致初始化失败卡死
+*/
+#define MPUDataReadFreq  					200				
+
 //陀螺仪数据结构体初始化
 static void GyroAccelStructureInit (GyroAccelStructure *ga)
 {
@@ -24,8 +31,8 @@ static void GyroAccelStructureInit (GyroAccelStructure *ga)
 static void EulerAngleStructureInit (EulerAngleStructure *ea)
 {
 	ea -> pitch = 0.f;
-	ea -> roll = 0.f;
-	ea -> yaw = 0.f;
+	ea -> roll 	= 0.f;
+	ea -> yaw 	= 0.f;
 }
 
 /**
@@ -175,8 +182,9 @@ static u8 MPU6050_SetSampleRate (u16 rate)
 	srf = rate;
 	if (srf > 200)	srf = 200;
 	if (srf < 4) 	srf = 4;
-	//设置数字低通滤波器
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, (u8)(1000 / srf - 1));
+	
+	//invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, (u8)(1000 / srf - 1));
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_SMPLRT_DIV, 0x07);		//陀螺仪采样率1kHz
 	
 	//自动设置滤波频率为采样率的一半
  	return MPU6050_SetDigitalLowFilter(rate / 2);	
@@ -204,12 +212,14 @@ Bool_ClassType GyroscopeTotalComponentInit (void)
 	GyroAccelStructureInit(&gas);
 	EulerAngleStructureInit(&eas);
 	invI2C_IO_Init();													//I2C port init
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		0x80);	//reset device
-	delay_ms(100);
-	//wake up device
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		MPU6050_CLOCK_INTERNAL);		 
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 	3 << 3);//gyroscope sensor, ±2000dps
-	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 	0 << 3);//accelerator sensor, ±2g
+	//invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		0x80);	//reset device
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		0x00);	//release sleep
+	delay_ms(200);														//wait mpu wake up
+	//invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		MPU6050_CLOCK_INTERNAL);		 
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_PWR_MGMT_1, 		MPU6050_CLOCK_PLL_XGYRO);
+	//invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_CONFIG, 			0x06);	//低通滤波器，截止频率1k，带宽5k
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_GYRO_CONFIG, 	0x18);	//gyroscope sensor, ±2000dps
+	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_ACCEL_CONFIG, 	0x00);	//accelerator sensor, ±2g
 	MPU6050_SetSampleRate(MPUDataReadFreq);								//setting sample rate
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_INT_ENABLE, 		0x00);	//setting all interrupt, 0x00 is close
 	invI2C_WriteDevByte(MPUDEVADDR, MPU6050_RA_USER_CTRL, 		0x00);	//setting device I2C master mode, 0x00 is close
@@ -369,19 +379,21 @@ dmpAlgorithmResult dmpAttitudeAlgorithm (EulerAngleStructure *ea)
 	OLED AttitudeAlgorithm数据显示
 	链接到OLED_DisplayModules函数
 	如果追求显示的实时性，可以考虑放到中断更新中
+	如果对精准度有要求可以设置显示为"%6.2f"
+	这里为了优化显示效果仅显示小数点后一位(第二位抖动太大)
 */
 void OLED_DisplayAA (EulerAngleStructure *ea)
 {
 	//显示俯仰Pitch角度(x轴)、显示翻滚Roll角度(y轴)
-	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P%6.2f R%6.2f"), ea -> pitch, ea -> roll);
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("P %5.1f R %5.1f"), ea -> pitch, ea -> roll);
 	OLED_ShowString(strPos(0u), ROW1, (StringCache*)oled_dtbuf, Font_Size);
 	//显示航向Yaw角度(z轴)、显示MPU芯片温度
-	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y%6.2f T%6.2f"), ea -> yaw, MPU_GlobalTemp);
+	snprintf((char*)oled_dtbuf, OneRowMaxWord, ("Y %5.1f T %5.1f"), ea -> yaw, MPU_GlobalTemp);
 	OLED_ShowString(strPos(0u), ROW2, (StringCache*)oled_dtbuf, Font_Size);
 	OLED_Refresh_Gram();
 }
 
-//MPU实时任务
+//MPU解算显示实时任务
 void dmpAttitudeAlgorithm_RT (IMU_MPUINT_Trigger imi_flag)
 {
 	/* 	This call need more optimize for real-time and jump RT call out.

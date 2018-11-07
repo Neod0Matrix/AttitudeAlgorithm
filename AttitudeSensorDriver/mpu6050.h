@@ -358,11 +358,13 @@
 #define MPU6050_WHO_AM_I_BIT        		6
 #define MPU6050_WHO_AM_I_LENGTH     		6
 
-//设置解算触发模式(定时器or外部中断)
-#define Use_TimerTrigger_DMP								//使用外部中断则注释该行		
+/*
+	设置解算触发模式(定时器/外部中断)，使用外部中断则注释
+	定时器触发由主控决定数据采集，外部中断触发由MPU决定
+	定时器触发的实时性更加好，外部中断触发更符合MPU时序
+*/
+#define Use_TimerTrigger_DMP								
 
-//MPU数据解析频率(建议任务不多时设置为150-200(200Hz最高)，任务较多设置为50-100)
-#define MPUDataReadFreq  					200				
 //MPU内部数据放大pow(2, 30)倍，输出时需要缩小，默认为double类型
 #define q30  								1073741824.f 	
 
